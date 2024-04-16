@@ -1,5 +1,15 @@
-import Image from 'next/image';
+import { getAllImages } from '@/util/images';
+import Homepage from './components/Homepage';
+import { BASE_URL } from '@/util/api-helper';
 
-export default function Home() {
-  return <div>hello world</div>;
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
+  const images = getAllImages();
+
+  return (
+    <div>
+      <Homepage images={images} />
+    </div>
+  );
 }
