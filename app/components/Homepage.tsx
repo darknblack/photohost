@@ -14,7 +14,7 @@ import cx from 'clsx';
 import axios from 'axios';
 
 interface Props {
-  images: Images[];
+  images: Image[];
 }
 
 const Homepage = (props: Props) => {

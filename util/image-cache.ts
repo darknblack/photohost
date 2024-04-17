@@ -1,9 +1,9 @@
 const ImageCache = {
-  cache: null as null | Images[],
+  cache: null as null | Image[],
   get() {
     return this.cache;
   },
-  set(cache: Images[]) {
+  set(cache: Image[]) {
     this.cache = cache;
   },
 };

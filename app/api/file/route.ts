@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
+import { GALLERY_ROOT_PATH } from '@/util/fs-utils';
 
 const validExts = ['jpg', 'jpeg', 'png', 'gif'];
 
@@ -16,7 +17,7 @@ export function GET(req: NextRequest) {
         return;
       }
 
-      const imagePath = path.join(process.cwd(), 'gallery', image);
+      const imagePath = path.join(GALLERY_ROOT_PATH, image);
       const blob = fs.readFileSync(imagePath);
 
       return new NextResponse(blob, {

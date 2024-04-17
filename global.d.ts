@@ -1,4 +1,4 @@
-interface Images {
+interface Image {
   path: string;
   created: number;
 }
