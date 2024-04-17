@@ -11,6 +11,8 @@ import {
 import { Button, FileInput, Label } from 'flowbite-react';
 import { useState } from 'react';
 import cx from 'clsx';
+import axios from 'axios';
+
 interface Props {
   images: Images[];
 }
@@ -23,7 +25,6 @@ const Homepage = (props: Props) => {
   });
 
   const uploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('ha');
     const file = e && e.target && e.target.files && e.target.files[0];
     if (!file) return;
 
@@ -31,13 +32,11 @@ const Homepage = (props: Props) => {
     f.append('file', file);
 
     try {
-      const r = await fetch('/api/upload', {
-        method: 'POST',
-        body: f,
+      const r = await axios.post('/api/upload', f, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-
-      const data = await r.json();
-      console.log('data', data);
     } catch (e) {}
   };
 
