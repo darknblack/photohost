@@ -145,18 +145,18 @@ const Homepage = (props: Props) => {
                   'flex gap-2 items-center': state.isListView,
                 })}
               >
-                <div
-                  style={{
-                    background: `url(${image.path})`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    backgroundSize: 'cover',
-                  }}
-                  className={cx('flex items-center justify-center rounded', {
+                <img
+                  src={image.path}
+                  alt="Image"
+                  className={cx('rounded', {
                     'h-40': !state.isListView,
-                    'h-14 w-14': state.isListView,
+                    '!w-12 h-12': state.isListView,
                   })}
-                ></div>
+                  style={{
+                    objectFit: 'cover', // TODO: experiment with scale-down option
+                    width: '100%',
+                  }}
+                />
                 <div
                   className={cx({
                     hidden: !state.isListView,
@@ -176,3 +176,18 @@ const Homepage = (props: Props) => {
 };
 
 export default Homepage;
+
+{
+  /* <div
+                  style={{
+                    background: `url(${image.path})`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    backgroundSize: 'cover',
+                  }}
+                  className={cx('flex items-center justify-center rounded', {
+                    'h-40': !state.isListView,
+                    'h-14 w-14': state.isListView,
+                  })}
+                ></div> */
+}
