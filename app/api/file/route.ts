@@ -22,7 +22,7 @@ export function GET(request: NextRequest) {
       return new NextResponse(blob, {
         headers: {
           'Content-Type': 'image/' + ext,
-          'Cache-Control': 'public, max-age=5',
+          'Cache-Control': 'public, max-age=3600',
         },
       });
     }
