@@ -4,8 +4,8 @@ import fs from 'fs';
 
 const validExts = ['jpg', 'jpeg', 'png', 'gif'];
 
-export function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
+export function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
   const image = searchParams.get('image') as string | null;
 
   try {

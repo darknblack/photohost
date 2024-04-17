@@ -8,19 +8,38 @@ import {
   ListBulletIcon,
   Squares2X2Icon,
 } from '@heroicons/react/24/outline';
-import { Button } from 'flowbite-react';
+import { Button, FileInput, Label } from 'flowbite-react';
 import { useState } from 'react';
 import cx from 'clsx';
-
 interface Props {
   images: Images[];
 }
+
 const Homepage = (props: Props) => {
   const { images } = props;
 
   const [state, setState] = useState({
     isListView: false,
   });
+
+  const uploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('ha');
+    const file = e && e.target && e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const f = new FormData();
+    f.append('file', file);
+
+    try {
+      const r = await fetch('/api/upload', {
+        method: 'POST',
+        body: f,
+      });
+
+      const data = await r.json();
+      console.log('data', data);
+    } catch (e) {}
+  };
 
   return (
     <div className="flex bg-zinc-800">
@@ -44,7 +63,7 @@ const Homepage = (props: Props) => {
       <div className="flex-1 p-2">
         <div className="p-2 flex justify-between">
           <div className="flex gap-2">
-            <Button.Group outline>
+            <Button.Group>
               <Button size={'sm'} className="bg-transparent border border-gray-400">
                 <span className="text-gray-200 text-xs relative top-0.5">Files</span>
               </Button>
@@ -91,10 +110,22 @@ const Homepage = (props: Props) => {
             </Button.Group>
           </div>
           <div className="flex gap-2">
-            <Button size={'sm'} className="bg-transparent border border-gray-400">
+            <Button
+              size={'sm'}
+              className="bg-transparent border border-gray-400"
+              onClick={() => {
+                document.getElementById('upload-image')?.click();
+              }}
+            >
               <PhotoIcon className="w-5 mr-2" />
               <span className="text-gray-200 text-xs relative top-0.5">Add item</span>
             </Button>
+            <FileInput
+              id="upload-image"
+              className="hidden"
+              accept="image/png, image/gif, image/jpeg"
+              onChange={uploadImage}
+            />
             <Button size={'sm'} className="bg-transparent border border-gray-400">
               <FolderPlusIcon className="w-5 mr-2" />
               <span className="text-gray-200 text-xs relative top-0.5">Add folder</span>

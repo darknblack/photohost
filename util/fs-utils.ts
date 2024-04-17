@@ -27,7 +27,7 @@ export function fetchImageMetadata() {
 
       const newPath = filePath.replace(path.join(process.cwd(), 'public'), '').replace('gallery\\', '');
       allImages.push({
-        path: `${BASE_URL}/api/file?image=` + encodeURIComponent(newPath),
+        path: `/api/file?image=` + encodeURIComponent(newPath),
         created: stat.birthtimeMs,
       });
     });
