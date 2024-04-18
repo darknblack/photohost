@@ -1,7 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import path from 'path';
-import { writeFile } from 'fs/promises';
-import { GALLERY_ROOT_PATH } from '@/util/fs-utils';
+import { writeFile, mkdir } from 'fs/promises';
+import { GALLERY_ROOT_PATH, THUMBS_PATH, getHashValue } from '@/util/fs-utils';
+import ImageManipulation from '@/util/image-manipulation';
+import sharp from 'sharp';
 
 const validExts = ['jpg', 'jpeg', 'png', 'gif'];
 
@@ -25,10 +27,22 @@ export async function POST(req: NextRequest) {
     );
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const filename = Date.now() + file.name.replaceAll(' ', '_');
+  const hash = await getHashValue(buffer);
+  const filename = `${Date.now()}-${hash}.${ext}`;
 
   try {
-    await writeFile(path.join(GALLERY_ROOT_PATH, filename), buffer);
+    await mkdir(GALLERY_ROOT_PATH, { recursive: true });
+    await mkdir(THUMBS_PATH, { recursive: true });
+
+    // Create the image and save it to disk
+    const imagePath = path.join(GALLERY_ROOT_PATH, filename);
+    await writeFile(imagePath, buffer);
+
+    // Create the thumbnail and save it to disk
+    const thumbPath = path.join(THUMBS_PATH, filename);
+
+    await ImageManipulation.downScale(sharp(buffer), thumbPath, 360);
+
     return NextResponse.json({ Message: 'Success', status: 201 });
   } catch (error) {
     console.log('Error occured ', error);

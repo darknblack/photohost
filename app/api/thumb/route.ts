@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
-import { GALLERY_ROOT_PATH } from '@/util/fs-utils';
+import { THUMBS_PATH } from '@/util/fs-utils';
 
-const validExts = ['jpg', 'jpeg', 'png', 'gif'];
+const validExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
 export function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -16,7 +16,8 @@ export function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
       }
 
-      const imagePath = path.join(GALLERY_ROOT_PATH, image);
+      const imagePath = path.join(THUMBS_PATH, image);
+
       const blob = fs.readFileSync(imagePath);
 
       return new NextResponse(blob, {

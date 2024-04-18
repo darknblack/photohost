@@ -12,19 +12,21 @@ import { Button, FileInput, Label } from 'flowbite-react';
 import { useState } from 'react';
 import cx from 'clsx';
 import axios from 'axios';
+import useEvent from '../hooks/useEvent';
 
 interface Props {
   images: Image[];
+  folders: string[];
 }
 
 const Homepage = (props: Props) => {
-  const { images } = props;
+  const { images, folders } = props;
 
   const [state, setState] = useState({
     isListView: false,
   });
 
-  const uploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadImage = useEvent(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e && e.target && e.target.files && e.target.files[0];
     if (!file) return;
 
@@ -38,24 +40,30 @@ const Homepage = (props: Props) => {
         },
       });
     } catch (e) {}
-  };
+  });
 
   return (
     <div className="flex bg-zinc-800">
       <div id="sidebar" className="min-h-screen w-64 bg-zinc-900 px-5">
         <div className="py-6 font-[600] text-zinc-200 text-lg">Photohost.io</div>
         <div className="flex flex-col gap-3">
-          <div className="flex gap-2">
-            <FolderIcon className="text-gray-100 w-5" />
-            <span>
+          <div className="">
+            <div className="flex gap-2">
+              <FolderIcon className="text-gray-100 w-5" />
               <h3 className="text-sm text-gray-300">Folders</h3>
-            </span>
+            </div>
+            <div className="py-2 flex flex-col gap-1">
+              {folders.map((folder, index) => (
+                <div key={index} className="flex gap-2 px-5">
+                  <FolderIcon className="text-gray-100 w-5" />
+                  <h3 className="text-sm text-gray-300">{folder}</h3>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="flex gap-2">
             <StarIcon className="text-gray-100 w-5" />
-            <span>
-              <h3 className="text-sm text-gray-300">Starred</h3>
-            </span>
+            <h3 className="text-sm text-gray-300">Starred</h3>
           </div>
         </div>
       </div>
@@ -140,13 +148,13 @@ const Homepage = (props: Props) => {
           >
             {images.map(image => (
               <div
-                key={image.path}
+                key={image.thumb}
                 className={cx({
                   'flex gap-2 items-center': state.isListView,
                 })}
               >
                 <img
-                  src={image.path}
+                  src={image.thumb}
                   alt="Image"
                   className={cx('rounded', {
                     'h-40': !state.isListView,
