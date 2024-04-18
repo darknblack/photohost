@@ -10,13 +10,20 @@ function fetchImageAndSort(folder: string, sortedImages: Image[]) {
   const imagesInRootFolder = fs.readdirSync(folder).filter(file => file.match(/\.(jpe?g|png|gif)$/i));
 
   imagesInRootFolder.forEach(file => {
-    const filePath = path.join(GALLERY_ROOT_PATH, file);
-    const thumbPath = path.join(THUMBS_PATH, file);
+    let filePath = path.join(GALLERY_ROOT_PATH, file);
+    let thumbPath = path.join(THUMBS_PATH, file);
+
+    if (!fs.existsSync(thumbPath)) {
+      thumbPath = filePath;
+    }
+
     const stat = fs.statSync(filePath);
+    filePath = filePath.replace(`${GALLERY_ROOT_PATH}\\`, '');
+    thumbPath = thumbPath.replace(`${THUMBS_PATH}\\`, '');
 
     const image = {
-      path: `/api/file?image=` + encodeURIComponent(filePath.replace(`${GALLERY_ROOT_PATH}\\`, '')),
-      thumb: `/api/thumb?image=` + encodeURIComponent(thumbPath.replace(`${THUMBS_PATH}\\`, '')),
+      path: `/api/file?image=` + filePath,
+      thumb: `/api/thumb?image=` + thumbPath,
       created: stat.birthtimeMs,
     };
 
@@ -51,20 +58,25 @@ export function fetchImageMetadata() {
 }
 
 export function getAllImages(page = 1, pageSize = 50) {
-  let imageCache = ImageCache.get();
-
-  // Check if image metadata is already cached
-  if (!imageCache) {
-    // If not cached, fetch image metadata
-    ImageCache.set(fetchImageMetadata());
-    // Watch for changes in the image directory
-    imageCache = ImageCache.get();
-  }
+  const imageCache = fetchImageMetadata();
 
   // Sort and paginate cached images
   const startIndex = (page - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedImages = imageCache && imageCache.slice(startIndex, endIndex);
+
+  return paginatedImages || [];
+}
+
+export function getImagesByFolder(subFolder: string, page = 1, pageSize = 50): Image[] {
+  const sortedImages: Image[] = [];
+  const folder = path.join(GALLERY_ROOT_PATH, subFolder);
+  fetchImageAndSort(folder, sortedImages);
+
+  // Sort and paginate cached images
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedImages = sortedImages.slice(startIndex, endIndex);
 
   return paginatedImages || [];
 }
@@ -81,5 +93,5 @@ export function getAllFolders() {
 }
 
 export function getHashValue(buffer: Buffer) {
-  return blake3(buffer);
+  return blake3(buffer, 128);
 }

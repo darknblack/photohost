@@ -8,22 +8,34 @@ import {
   ListBulletIcon,
   Squares2X2Icon,
 } from '@heroicons/react/24/outline';
-import { Button, FileInput, Label } from 'flowbite-react';
-import { useState } from 'react';
+import { Button, FileInput, Label, Modal, TextInput } from 'flowbite-react';
+import { useEffect, useState } from 'react';
 import cx from 'clsx';
 import axios from 'axios';
 import useEvent from '../hooks/useEvent';
+import { Breadcrumb } from 'flowbite-react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import usePrevious from '../hooks/usePrevious';
 
 interface Props {
   images: Image[];
   folders: string[];
+  activeFolder: string;
 }
 
 const Homepage = (props: Props) => {
   const { images, folders } = props;
 
+  const searchParams = useSearchParams();
+  const folder = searchParams.get('folder') as string;
+  const prevFolder = usePrevious(folder);
+
   const [state, setState] = useState({
     isListView: false,
+    folderName: '',
+    openAddFolder: false,
+    images: images,
   });
 
   const uploadImage = useEvent(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,30 +46,46 @@ const Homepage = (props: Props) => {
     f.append('file', file);
 
     try {
-      const r = await axios.post('/api/upload', f, {
+      await axios.post('/api/upload', f, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+      window.location.reload();
     } catch (e) {}
   });
+
+  const createFolder = async () => {
+    try {
+      await axios.post(`/api/folder?name=${encodeURIComponent(state.folderName)}`);
+      window.location.reload();
+    } catch (e) {}
+
+    setState({
+      ...state,
+      folderName: '',
+      openAddFolder: false,
+    });
+  };
 
   return (
     <div className="flex bg-zinc-800">
       <div id="sidebar" className="min-h-screen w-64 bg-zinc-900 px-5">
-        <div className="py-6 font-[600] text-zinc-200 text-lg">Photohost.io</div>
+        <Link href="/" className="block py-6 font-[600] text-zinc-200 text-lg">
+          Photohost.io
+        </Link>
         <div className="flex flex-col gap-3">
           <div className="">
-            <div className="flex gap-2">
+            <Link href={'/'} className="flex gap-2">
               <FolderIcon className="text-gray-100 w-5" />
-              <h3 className="text-sm text-gray-300">Folders</h3>
-            </div>
+              <h3 className="text-sm text-gray-300">Home</h3>
+            </Link>
             <div className="py-2 flex flex-col gap-1">
               {folders.map((folder, index) => (
-                <div key={index} className="flex gap-2 px-5">
+                <Link href={`?folder=${encodeURIComponent(folder)}`} key={index} className="flex gap-2 px-6">
                   <FolderIcon className="text-gray-100 w-5" />
                   <h3 className="text-sm text-gray-300">{folder}</h3>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -68,19 +96,18 @@ const Homepage = (props: Props) => {
         </div>
       </div>
       <div className="flex-1 p-2">
-        <div className="p-2 flex justify-between">
+        <div className="px-4 py-2 flex justify-between">
           <div className="flex gap-2">
-            <Button.Group>
-              <Button size={'sm'} className="bg-transparent border border-gray-400">
-                <span className="text-gray-200 text-xs relative top-0.5">Files</span>
-              </Button>
-              <Button size={'sm'} className="bg-transparent border border-gray-400">
-                <span className="text-gray-200 text-xs relative top-0.5">Folder</span>
-              </Button>
-              <Button size={'sm'} className="bg-transparent border border-gray-400">
-                <span className="text-gray-200 text-xs relative top-0.5">Both</span>
-              </Button>
-            </Button.Group>
+            <Breadcrumb className="bg-zinc-900 px-3 rounded min-w-[24rem] py-2">
+              <Breadcrumb.Item>
+                <Link href="/" className="text-gray-200">
+                  Home
+                </Link>
+              </Breadcrumb.Item>
+              <Breadcrumb.Item>
+                <div className="text-gray-300">{folder}</div>
+              </Breadcrumb.Item>
+            </Breadcrumb>
           </div>
           <div className="flex gap-2">
             <Button.Group>
@@ -133,7 +160,13 @@ const Homepage = (props: Props) => {
               accept="image/png, image/gif, image/jpeg"
               onChange={uploadImage}
             />
-            <Button size={'sm'} className="bg-transparent border border-gray-400">
+            <Button
+              size={'sm'}
+              className="bg-transparent border border-gray-400"
+              onClick={() => {
+                setState(prev => ({ ...prev, openAddFolder: !prev.openAddFolder }));
+              }}
+            >
               <FolderPlusIcon className="w-5 mr-2" />
               <span className="text-gray-200 text-xs relative top-0.5">Add folder</span>
             </Button>
@@ -141,13 +174,14 @@ const Homepage = (props: Props) => {
         </div>
         <div className="">
           <div
-            className={cx('grid p-2', {
+            className={cx('grid px-4 py-5', {
               'grid-cols-3 gap-4': state.isListView,
               'grid-cols-8 gap-2': !state.isListView,
             })}
           >
-            {images.map(image => (
-              <div
+            {state.images.map(image => (
+              <a
+                href={image.path}
                 key={image.thumb}
                 className={cx({
                   'flex gap-2 items-center': state.isListView,
@@ -174,11 +208,54 @@ const Homepage = (props: Props) => {
                   {/* <div>25MB</div> */}
                   <div>2024-01-01 12:00</div>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>
       </div>
+      <Modal
+        show={state.openAddFolder}
+        size="md"
+        onClose={() =>
+          setState(prev => ({
+            ...prev,
+            openAddFolder: false,
+          }))
+        }
+        dismissible
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <FolderIcon className="text-gray-500 w-14 mx-auto" />
+            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Enter the folder name</h3>
+            <TextInput
+              value={state.folderName}
+              onChange={e =>
+                setState(prev => ({
+                  ...prev,
+                  folderName: e.target.value,
+                }))
+              }
+            ></TextInput>
+            <div className="flex justify-center gap-4 mt-6">
+              <Button onClick={createFolder}>{'Create folder'}</Button>
+              <Button
+                color="gray"
+                onClick={() =>
+                  setState(prev => ({
+                    ...prev,
+                    openAddFolder: false,
+                  }))
+                }
+              >
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };
