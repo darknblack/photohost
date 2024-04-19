@@ -78,7 +78,7 @@ const Homepage = (props: Props) => {
           <div className="">
             <Link href={'/'} className="flex gap-2">
               <FolderIcon className="text-gray-100 w-5" />
-              <h3 className="text-sm text-gray-300">Home</h3>
+              <h3 className="text-sm text-gray-300">Gallery</h3>
             </Link>
             <div className="py-2 flex flex-col gap-1">
               {folders.map((folder, index) => (
@@ -101,7 +101,7 @@ const Homepage = (props: Props) => {
             <Breadcrumb className="bg-zinc-900 px-3 rounded min-w-[24rem] py-2">
               <Breadcrumb.Item>
                 <Link href="/" className="text-gray-200">
-                  Home
+                  Gallery
                 </Link>
               </Breadcrumb.Item>
               <Breadcrumb.Item>
