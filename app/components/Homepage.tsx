@@ -79,7 +79,7 @@ const Homepage = (props: Props) => {
             </Link>
             <div className="py-2 flex flex-col gap-1">
               {folders.map((folder, index) => (
-                <Link href={`?folder=${encodeURIComponent(folder.name)}`} key={index} className="flex gap-2 px-6">
+                <Link href={`?folder=${encodeURIComponent(folder.name)}`} key={folder.name} className="flex gap-2 px-6">
                   <FolderIcon className="text-gray-100 w-5" />
                   <h3 className="text-sm text-gray-300">
                     {folder.name} <span className="text-xs text-gray-500">({folder.count})</span>
@@ -109,11 +109,10 @@ const Homepage = (props: Props) => {
             </Breadcrumb>
           </div>
           <div className="flex gap-2">
-            <Button.Group>
-              <Button
-                size={'sm'}
-                className={cx('bg-transparent border border-gray-400', {
-                  'bg-gray-300': state.isListView,
+            <div className="flex items-center justify-center">
+              <div
+                className={cx('bg-transparent border border-r-px  border-gray-400 p-1 rounded-l cursor-pointer', {
+                  '!bg-gray-300': state.isListView,
                 })}
                 onClick={() => {
                   setState({ ...state, isListView: true });
@@ -124,11 +123,10 @@ const Homepage = (props: Props) => {
                     'text-gray-700': state.isListView,
                   })}
                 />
-              </Button>
-              <Button
-                size={'sm'}
-                className={cx('bg-transparent border border-gray-400', {
-                  'bg-gray-300': !state.isListView,
+              </div>
+              <div
+                className={cx('bg-transparent border border-l-0 border-gray-400 p-1 rounded-r cursor-pointer', {
+                  '!bg-gray-300': !state.isListView,
                 })}
                 onClick={() => {
                   setState({ ...state, isListView: false });
@@ -139,8 +137,8 @@ const Homepage = (props: Props) => {
                     'text-gray-700': !state.isListView,
                   })}
                 />
-              </Button>
-            </Button.Group>
+              </div>
+            </div>
           </div>
           <div className="flex gap-2">
             <Button
