@@ -9,14 +9,13 @@ import {
   Squares2X2Icon,
 } from '@heroicons/react/24/outline';
 import { Button, FileInput, Label, Modal, TextInput } from 'flowbite-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import cx from 'clsx';
-import axios from 'axios';
 import useEvent from '../hooks/useEvent';
 import { Breadcrumb } from 'flowbite-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import usePrevious from '../hooks/usePrevious';
+import { addFolderToServer, uploadImageOnServer } from '../actions';
 
 interface Props {
   images: Image[];
@@ -29,7 +28,6 @@ const Homepage = (props: Props) => {
 
   const searchParams = useSearchParams();
   const folder = searchParams.get('folder') as string;
-  const prevFolder = usePrevious(folder);
 
   const [state, setState] = useState({
     isListView: false,
@@ -42,22 +40,18 @@ const Homepage = (props: Props) => {
     const file = e && e.target && e.target.files && e.target.files[0];
     if (!file) return;
 
-    const f = new FormData();
-    f.append('file', file);
+    const formData = new FormData();
+    formData.append('file', file);
 
     try {
-      await axios.post('/api/upload', f, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      window.location.reload();
+      const res = await uploadImageOnServer(formData, folder);
+      if (res === 1) window.location.reload();
     } catch (e) {}
   });
 
   const createFolder = async () => {
     try {
-      await axios.post(`/api/folder?name=${encodeURIComponent(state.folderName)}`);
+      const res = await addFolderToServer(state.folderName);
       window.location.reload();
     } catch (e) {}
 
@@ -181,8 +175,8 @@ const Homepage = (props: Props) => {
           >
             {state.images.map(image => (
               <a
+                key={image.path}
                 href={image.path}
-                key={image.thumb}
                 className={cx({
                   'flex gap-2 items-center': state.isListView,
                 })}

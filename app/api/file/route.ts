@@ -1,30 +1,27 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
-import { GALLERY_ROOT_PATH } from '@/util/fs-utils';
-
-const validExts = ['jpg', 'jpeg', 'png', 'gif'];
+import { GALLERY_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS } from '@/util/fs-utils';
 
 export function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const image = searchParams.get('image') as string | null;
+  const folder = searchParams.get('folder') as string | '';
+  const thumb = searchParams.get('thumb') as string | null;
 
   try {
-    if (image) {
-      const ext = image.split('.').pop()?.toLocaleLowerCase() || '';
-      if (!validExts.includes(ext)) {
-        return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
+    const ext = (image && image.split('.').pop()?.toLocaleLowerCase()) || '';
+
+    if (image && VALID_EXTENSIONS.includes(ext)) {
+      const res = getFile(folder, image, thumb !== null ? THUMBS_ROOT_PATH : GALLERY_ROOT_PATH);
+      if (res) {
+        return new NextResponse(res, {
+          headers: {
+            'Content-Type': 'image/' + ext,
+            'Cache-Control': 'public, max-age=5',
+          },
+        });
       }
-
-      const imagePath = path.join(GALLERY_ROOT_PATH, image);
-      const blob = fs.readFileSync(imagePath);
-
-      return new NextResponse(blob, {
-        headers: {
-          'Content-Type': 'image/' + ext,
-          'Cache-Control': 'public, max-age=5',
-        },
-      });
     }
   } catch (error) {
     return NextResponse.json(
@@ -36,5 +33,12 @@ export function GET(req: NextRequest) {
     );
   }
 
-  return NextResponse.json({ error: 'No image provided' }, { status: 400 });
+  return NextResponse.json({ error: 'Failed to fetch image' }, { status: 400 });
+}
+
+function getFile(folder: string, fileName: string, basePath: string) {
+  const realpath = folder ? path.join(basePath, folder, fileName) : path.join(basePath, fileName);
+  if (fs.existsSync(realpath)) {
+    return fs.readFileSync(realpath);
+  }
 }

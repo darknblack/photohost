@@ -1,22 +1,22 @@
 import path from 'path';
 import fs from 'fs';
-import ImageCache from './image-cache';
 import { blake3 } from 'hash-wasm';
 
 export const GALLERY_ROOT_PATH = path.join('gallery');
-export const THUMBS_PATH = path.join('thumbs');
+export const THUMBS_ROOT_PATH = path.join('thumbs');
+export const VALID_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
 function fetchImageAndSort(folder: string, sortedImages: Image[]) {
   const imagesInRootFolder = fs.readdirSync(folder).filter(file => file.match(/\.(jpe?g|png|gif)$/i));
 
   imagesInRootFolder.forEach(file => {
     let filePath = path.join(GALLERY_ROOT_PATH, file);
-    let thumbPath = path.join(THUMBS_PATH, file);
+    let thumbPath = path.join(THUMBS_ROOT_PATH, file);
 
     if (!fs.existsSync(thumbPath)) {
-      thumbPath = `/api/file?image=${thumbPath.replace(`${THUMBS_PATH}\\`, '')}`;
+      thumbPath = `/api/file?image=${thumbPath.replace(`${THUMBS_ROOT_PATH}\\`, '')}`;
     } else {
-      thumbPath = `/api/thumb?image=${thumbPath.replace(`${THUMBS_PATH}\\`, '')}`;
+      thumbPath = `/api/thumb?image=${thumbPath.replace(`${THUMBS_ROOT_PATH}\\`, '')}`;
     }
 
     const stat = fs.statSync(filePath);
@@ -39,7 +39,7 @@ export function fetchImageMetadata() {
   const sortedImages: Image[] = [];
 
   fs.mkdirSync(GALLERY_ROOT_PATH, { recursive: true });
-  fs.mkdirSync(THUMBS_PATH, { recursive: true });
+  fs.mkdirSync(THUMBS_ROOT_PATH, { recursive: true });
 
   // Get the list of subfolders within the "images/" directory
   const folders = fs
@@ -80,17 +80,6 @@ export function getImagesByFolder(subFolder: string, page = 1, pageSize = 50): I
   const paginatedImages = sortedImages.slice(startIndex, endIndex);
 
   return paginatedImages || [];
-}
-
-export function getAllFolders() {
-  fs.mkdirSync(GALLERY_ROOT_PATH, { recursive: true });
-
-  const folders = fs
-    .readdirSync(GALLERY_ROOT_PATH, { withFileTypes: true })
-    .filter(item => item.isDirectory())
-    .map(item => item.name);
-
-  return folders;
 }
 
 export function getHashValue(buffer: Buffer) {
