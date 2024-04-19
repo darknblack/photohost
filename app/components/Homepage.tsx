@@ -19,7 +19,10 @@ import { addFolderToServer, uploadImageOnServer } from '../actions';
 
 interface Props {
   images: Image[];
-  folders: string[];
+  folders: {
+    name: string;
+    count: number;
+  }[];
   activeFolder: string;
 }
 
@@ -76,9 +79,11 @@ const Homepage = (props: Props) => {
             </Link>
             <div className="py-2 flex flex-col gap-1">
               {folders.map((folder, index) => (
-                <Link href={`?folder=${encodeURIComponent(folder)}`} key={index} className="flex gap-2 px-6">
+                <Link href={`?folder=${encodeURIComponent(folder.name)}`} key={index} className="flex gap-2 px-6">
                   <FolderIcon className="text-gray-100 w-5" />
-                  <h3 className="text-sm text-gray-300">{folder}</h3>
+                  <h3 className="text-sm text-gray-300">
+                    {folder.name} <span className="text-xs text-gray-500">({folder.count})</span>
+                  </h3>
                 </Link>
               ))}
             </div>

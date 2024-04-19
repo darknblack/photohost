@@ -62,13 +62,23 @@ export async function getImages(props: Props) {
   return images.slice((page - 1) * pageSize, page * pageSize);
 }
 
-export async function getAllFolders() {
+export async function getAllFolders(): Promise<
+  {
+    name: string;
+    count: number;
+  }[]
+> {
   fs.mkdirSync(GALLERY_ROOT_PATH, { recursive: true });
 
   const folders = fs
     .readdirSync(GALLERY_ROOT_PATH, { withFileTypes: true })
     .filter(item => item.isDirectory())
-    .map(item => item.name);
+    .map(item => {
+      return {
+        name: item.name,
+        count: fs.readdirSync(path.join(GALLERY_ROOT_PATH, item.name)).length,
+      };
+    });
 
   return folders;
 }
