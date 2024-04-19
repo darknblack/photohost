@@ -8,29 +8,28 @@ import sharp from 'sharp';
 const validExts = ['jpg', 'jpeg', 'png', 'gif'];
 
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
-
-  const file = formData.get('file');
-  if (!file) return NextResponse.json({ error: 'No files received.' }, { status: 400 });
-
-  // Check if 'file' is a File object before accessing arrayBuffer()
-  if (!(file instanceof File)) return NextResponse.json({ error: 'Invalid file.' }, { status: 400 });
-
-  // Get the file extension
-  const ext = path.extname(file.name).toLowerCase().replace('.', '');
-
-  // Check if extension is valid
-  if (!validExts.includes(ext))
-    return NextResponse.json(
-      { error: 'Invalid file extension. Only jpg, jpeg, png, and gif allowed.' },
-      { status: 400 }
-    );
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const hash = await getHashValue(buffer);
-  const filename = `${Date.now()}-${hash}.${ext}`;
-
   try {
+    const formData = await req.formData();
+
+    const file = formData.get('file');
+    if (!file) return NextResponse.json({ error: 'No files received.' }, { status: 400 });
+
+    // @ts-ignore
+    // Get the file extension
+    const ext = path.extname(file.name).toLowerCase().replace('.', '');
+
+    // Check if extension is valid
+    if (!validExts.includes(ext))
+      return NextResponse.json(
+        { error: 'Invalid file extension. Only jpg, jpeg, png, and gif allowed.' },
+        { status: 400 }
+      );
+
+    // @ts-ignore
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const hash = await getHashValue(buffer);
+    const filename = `${Date.now()}-${hash}.${ext}`;
+
     await mkdir(GALLERY_ROOT_PATH, { recursive: true });
     await mkdir(THUMBS_PATH, { recursive: true });
 

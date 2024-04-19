@@ -14,16 +14,17 @@ function fetchImageAndSort(folder: string, sortedImages: Image[]) {
     let thumbPath = path.join(THUMBS_PATH, file);
 
     if (!fs.existsSync(thumbPath)) {
-      thumbPath = filePath;
+      thumbPath = `/api/file?image=${thumbPath.replace(`${THUMBS_PATH}\\`, '')}`;
+    } else {
+      thumbPath = `/api/thumb?image=${thumbPath.replace(`${THUMBS_PATH}\\`, '')}`;
     }
 
     const stat = fs.statSync(filePath);
-    filePath = filePath.replace(`${GALLERY_ROOT_PATH}\\`, '');
-    thumbPath = thumbPath.replace(`${THUMBS_PATH}\\`, '');
+    filePath = `/api/file?image=${filePath.replace(`${GALLERY_ROOT_PATH}\\`, '')}`;
 
     const image = {
-      path: `/api/file?image=` + filePath,
-      thumb: `/api/thumb?image=` + thumbPath,
+      path: filePath,
+      thumb: thumbPath,
       created: stat.birthtimeMs,
     };
 

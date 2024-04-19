@@ -1,5 +1,6 @@
-import { getAllFolders, getAllImages, getImagesByFolder } from '@/util/fs-utils';
+import { getAllFolders } from '@/util/fs-utils';
 import Homepage from './components/Homepage';
+import { getImages } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,7 @@ type searchParams = {
 export default async function Home({ searchParams }: { searchParams?: searchParams }) {
   const activeFolder = ((searchParams && searchParams['folder']) ?? '') as string;
 
-  const images = activeFolder ? getImagesByFolder(activeFolder) : getAllImages();
+  const images = getImages(activeFolder);
   const folders = getAllFolders();
 
   return (
