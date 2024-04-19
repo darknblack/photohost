@@ -16,6 +16,7 @@ import { Breadcrumb } from 'flowbite-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { addFolderToServer, uploadImageOnServer } from '../actions';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   images: Image[];
@@ -31,6 +32,7 @@ const Homepage = (props: Props) => {
 
   const searchParams = useSearchParams();
   const activeFolder = searchParams.get('folder') as string;
+  const router = useRouter();
 
   const [state, setState] = useState({
     isListView: false,
@@ -48,14 +50,14 @@ const Homepage = (props: Props) => {
 
     try {
       const res = await uploadImageOnServer(formData, activeFolder);
-      if (res === 1) window.location.reload();
+      if (res === 1) router.refresh();
     } catch (e) {}
   });
 
   const createFolder = async () => {
     try {
       const res = await addFolderToServer(state.folderName);
-      window.location.reload();
+      router.refresh();
     } catch (e) {}
 
     setState({
@@ -68,24 +70,32 @@ const Homepage = (props: Props) => {
   return (
     <div className="flex bg-zinc-800">
       <div id="sidebar" className="min-h-screen w-64 bg-zinc-900 px-5">
-        <Link href="/" className="block py-6 font-[600] text-zinc-200 text-lg">
+        <Link
+          href={{ pathname: '/', query: { folder: '' } }}
+          as={{ pathname: '/', query: { folder: '' } }}
+          className="block py-6 font-[600] text-zinc-200 text-lg"
+        >
           Photohost.io
         </Link>
         <div className="flex flex-col gap-3">
           <div className="">
-            <Link href={'/'} className="flex gap-2">
+            <Link
+              href={{ pathname: '/', query: { folder: '' } }}
+              as={{ pathname: '/', query: { folder: '' } }}
+              className="flex gap-2"
+            >
               <FolderIcon className="text-gray-300 w-5" />
               <h3 className="text-sm text-gray-300">Gallery</h3>
             </Link>
             <div className="py-2 flex flex-col gap-1">
-              {folders.map((folder, index) => (
-                <Link href={`?folder=${encodeURIComponent(folder.name)}`} key={folder.name} className="flex gap-2 px-6">
+              {folders.map(folder => (
+                <Link href={`?folder=${encodeURIComponent(folder.name)}`} key={folder.name} className="flex gap-2 px-3">
                   <FolderIcon
-                    className={cx('text-gray-500 w-5', {
+                    className={cx('text-gray-500 w-5 h-5', {
                       '!text-gray-300': folder.name === activeFolder,
                     })}
                   />
-                  <h3 className="text-sm text-gray-300">
+                  <h3 className="text-sm text-gray-300 flex-1">
                     {folder.name} <span className={cx('text-xs text-gray-500')}>({folder.count})</span>
                   </h3>
                 </Link>
@@ -116,7 +126,7 @@ const Homepage = (props: Props) => {
             <div className="flex items-center justify-center">
               <Button
                 size="xs"
-                className={cx('bg-transparent rounded-r-none border-gray-400 cursor-pointer', {
+                className={cx('bg-transparent rounded-r-none border-r-0 border-gray-400 cursor-pointer', {
                   '!bg-gray-300': state.isListView,
                 })}
                 onClick={() => {
@@ -131,7 +141,7 @@ const Homepage = (props: Props) => {
               </Button>
               <Button
                 size="xs"
-                className={cx('bg-transparent rounded-l-none border-gray-400 cursor-pointer', {
+                className={cx('bg-transparent rounded-l-none border-l-0 !border-gray-400 cursor-pointer', {
                   '!bg-gray-300': !state.isListView,
                 })}
                 onClick={() => {
@@ -183,12 +193,14 @@ const Homepage = (props: Props) => {
             })}
           >
             {state.images.map(image => (
-              <a
+              <Link
                 key={image.path}
                 href={image.path}
                 className={cx({
                   'flex gap-2 items-center': state.isListView,
                 })}
+                target="_blank"
+                prefetch={false}
               >
                 <img
                   src={image.thumb}
@@ -211,7 +223,7 @@ const Homepage = (props: Props) => {
                   {/* <div>25MB</div> */}
                   <div>2024-01-01 12:00</div>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </div>

@@ -1,6 +1,5 @@
 import Homepage from './components/Homepage';
 import { getAllFolders, getImages } from './actions';
-import { unstable_noStore as noStore } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,13 +9,20 @@ type searchParams = {
 
 export default async function Home({ searchParams }: { searchParams?: searchParams }) {
   const activeFolder = ((searchParams && searchParams['folder']) ?? '') as string;
+  let activePage: string | number = ((searchParams && searchParams['page']) ?? '') as string;
+  let activePageSize: string | number = ((searchParams && searchParams['pageSize']) ?? '') as string;
 
-  const images = await getImages({ folder: activeFolder, page: 1, pageSize: 50 });
+  if (!activePage) activePage = 1;
+  if (!activePageSize) activePageSize = 50;
+
+  const images = await getImages({ folder: activeFolder, page: Number(activePage), pageSize: Number(activePageSize) });
   const folders = await getAllFolders();
+
+  const key = `${activeFolder}-${activePage}-${activePageSize}`;
 
   return (
     <div>
-      <Homepage key={Math.random()} images={images} folders={folders} activeFolder={activeFolder} />
+      <Homepage key={key} images={images} folders={folders} activeFolder={activeFolder} />
     </div>
   );
 }
