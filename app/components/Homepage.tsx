@@ -30,7 +30,7 @@ const Homepage = (props: Props) => {
   const { images, folders } = props;
 
   const searchParams = useSearchParams();
-  const folder = searchParams.get('folder') as string;
+  const activeFolder = searchParams.get('folder') as string;
 
   const [state, setState] = useState({
     isListView: false,
@@ -47,7 +47,7 @@ const Homepage = (props: Props) => {
     formData.append('file', file);
 
     try {
-      const res = await uploadImageOnServer(formData, folder);
+      const res = await uploadImageOnServer(formData, activeFolder);
       if (res === 1) window.location.reload();
     } catch (e) {}
   });
@@ -74,22 +74,26 @@ const Homepage = (props: Props) => {
         <div className="flex flex-col gap-3">
           <div className="">
             <Link href={'/'} className="flex gap-2">
-              <FolderIcon className="text-gray-100 w-5" />
+              <FolderIcon className="text-gray-300 w-5" />
               <h3 className="text-sm text-gray-300">Gallery</h3>
             </Link>
             <div className="py-2 flex flex-col gap-1">
               {folders.map((folder, index) => (
                 <Link href={`?folder=${encodeURIComponent(folder.name)}`} key={folder.name} className="flex gap-2 px-6">
-                  <FolderIcon className="text-gray-100 w-5" />
+                  <FolderIcon
+                    className={cx('text-gray-500 w-5', {
+                      '!text-gray-300': folder.name === activeFolder,
+                    })}
+                  />
                   <h3 className="text-sm text-gray-300">
-                    {folder.name} <span className="text-xs text-gray-500">({folder.count})</span>
+                    {folder.name} <span className={cx('text-xs text-gray-500')}>({folder.count})</span>
                   </h3>
                 </Link>
               ))}
             </div>
           </div>
           <div className="flex gap-2">
-            <StarIcon className="text-gray-100 w-5" />
+            <StarIcon className="text-gray-300 w-5" />
             <h3 className="text-sm text-gray-300">Starred</h3>
           </div>
         </div>
@@ -104,14 +108,15 @@ const Homepage = (props: Props) => {
                 </Link>
               </Breadcrumb.Item>
               <Breadcrumb.Item>
-                <div className="text-gray-300">{folder}</div>
+                <div className="text-gray-300">{activeFolder}</div>
               </Breadcrumb.Item>
             </Breadcrumb>
           </div>
           <div className="flex gap-2">
             <div className="flex items-center justify-center">
-              <div
-                className={cx('bg-transparent border border-r-px  border-gray-400 p-1 rounded-l cursor-pointer', {
+              <Button
+                size="xs"
+                className={cx('bg-transparent rounded-r-none border-gray-400 cursor-pointer', {
                   '!bg-gray-300': state.isListView,
                 })}
                 onClick={() => {
@@ -123,9 +128,10 @@ const Homepage = (props: Props) => {
                     'text-gray-700': state.isListView,
                   })}
                 />
-              </div>
-              <div
-                className={cx('bg-transparent border border-l-0 border-gray-400 p-1 rounded-r cursor-pointer', {
+              </Button>
+              <Button
+                size="xs"
+                className={cx('bg-transparent rounded-l-none border-gray-400 cursor-pointer', {
                   '!bg-gray-300': !state.isListView,
                 })}
                 onClick={() => {
@@ -137,7 +143,7 @@ const Homepage = (props: Props) => {
                     'text-gray-700': !state.isListView,
                   })}
                 />
-              </div>
+              </Button>
             </div>
           </div>
           <div className="flex gap-2">
