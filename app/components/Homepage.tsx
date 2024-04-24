@@ -68,8 +68,8 @@ const Homepage = (props: Props) => {
   };
 
   return (
-    <div className="flex bg-zinc-800">
-      <div id="sidebar" className="min-h-screen w-64 bg-zinc-900 px-5">
+    <div className="flex bg-neutral-900">
+      <div id="sidebar" className="min-h-screen w-64 bg-neutral-950 px-5">
         <Link
           href={{ pathname: '/', query: { folder: '' } }}
           as={{ pathname: '/', query: { folder: '' } }}
@@ -84,41 +84,41 @@ const Homepage = (props: Props) => {
               as={{ pathname: '/', query: { folder: '' } }}
               className="flex gap-2"
             >
-              <FolderIcon className="text-gray-300 w-5" />
-              <h3 className="text-sm text-gray-300">Gallery</h3>
+              <FolderIcon className="text-neutral-300 w-5" />
+              <h3 className="text-sm text-neutral-300">Gallery</h3>
             </Link>
             <div className="py-2 flex flex-col gap-1">
               {folders.map(folder => (
                 <Link href={`?folder=${encodeURIComponent(folder.name)}`} key={folder.name} className="flex gap-2 px-3">
                   <FolderIcon
-                    className={cx('text-gray-500 w-5 h-5', {
-                      '!text-gray-300': folder.name === activeFolder,
+                    className={cx('text-neutral-500 w-5 h-5', {
+                      '!text-neutral-300': folder.name === activeFolder,
                     })}
                   />
-                  <h3 className="text-sm text-gray-300 flex-1">
-                    {folder.name} <span className={cx('text-xs text-gray-500')}>({folder.count})</span>
+                  <h3 className="text-sm text-neutral-300 flex-1">
+                    {folder.name} <span className={cx('text-xs text-neutral-500')}>({folder.count})</span>
                   </h3>
                 </Link>
               ))}
             </div>
           </div>
           <div className="flex gap-2">
-            <StarIcon className="text-gray-300 w-5" />
-            <h3 className="text-sm text-gray-300">Starred</h3>
+            <StarIcon className="text-neutral-300 w-5" />
+            <h3 className="text-sm text-neutral-300">Starred</h3>
           </div>
         </div>
       </div>
       <div className="flex-1 p-2">
         <div className="px-4 py-2 flex justify-between">
           <div className="flex gap-2">
-            <Breadcrumb className="bg-zinc-900 px-3 rounded min-w-[24rem] py-2">
+            <Breadcrumb className="bg-neutral-900 px-3 rounded min-w-[24rem] py-2">
               <Breadcrumb.Item>
-                <Link href="/" className="text-gray-200">
+                <Link href="/" className="text-neutral-200">
                   Gallery
                 </Link>
               </Breadcrumb.Item>
               <Breadcrumb.Item>
-                <div className="text-gray-300">{activeFolder}</div>
+                <div className="text-neutral-300">{activeFolder}</div>
               </Breadcrumb.Item>
             </Breadcrumb>
           </div>
@@ -126,7 +126,7 @@ const Homepage = (props: Props) => {
             <div className="flex items-center justify-center">
               <Button
                 size="xs"
-                className={cx('bg-transparent rounded-r-none border-r-0 border-gray-400 cursor-pointer', {
+                className={cx('bg-transparent rounded-r-none border-r-0 border-neutral-400 cursor-pointer', {
                   '!bg-gray-300': state.isListView,
                 })}
                 onClick={() => {
@@ -135,13 +135,13 @@ const Homepage = (props: Props) => {
               >
                 <ListBulletIcon
                   className={cx('w-5', {
-                    'text-gray-700': state.isListView,
+                    'text-neutral-700': state.isListView,
                   })}
                 />
               </Button>
               <Button
                 size="xs"
-                className={cx('bg-transparent rounded-l-none border-l-0 !border-gray-400 cursor-pointer', {
+                className={cx('bg-transparent rounded-l-none border-l-0 !border-neutral-400 cursor-pointer', {
                   '!bg-gray-300': !state.isListView,
                 })}
                 onClick={() => {
@@ -150,7 +150,7 @@ const Homepage = (props: Props) => {
               >
                 <Squares2X2Icon
                   className={cx('w-5', {
-                    'text-gray-700': !state.isListView,
+                    'text-neutral-700': !state.isListView,
                   })}
                 />
               </Button>
@@ -159,13 +159,13 @@ const Homepage = (props: Props) => {
           <div className="flex gap-2">
             <Button
               size={'sm'}
-              className="bg-transparent border border-gray-400"
+              className="bg-transparent border border-neutral-400"
               onClick={() => {
                 document.getElementById('upload-image')?.click();
               }}
             >
               <PhotoIcon className="w-5 mr-2" />
-              <span className="text-gray-200 text-xs relative top-0.5">Add item</span>
+              <span className="text-neutral-200 text-xs relative top-0.5">Add item</span>
             </Button>
             <FileInput
               id="upload-image"
@@ -175,13 +175,13 @@ const Homepage = (props: Props) => {
             />
             <Button
               size={'sm'}
-              className="bg-transparent border border-gray-400"
+              className="bg-transparent border border-neutral-400"
               onClick={() => {
                 setState(prev => ({ ...prev, openAddFolder: !prev.openAddFolder }));
               }}
             >
               <FolderPlusIcon className="w-5 mr-2" />
-              <span className="text-gray-200 text-xs relative top-0.5">Add folder</span>
+              <span className="text-neutral-200 text-xs relative top-0.5">Add folder</span>
             </Button>
           </div>
         </div>
@@ -243,8 +243,8 @@ const Homepage = (props: Props) => {
         <Modal.Header />
         <Modal.Body>
           <div className="text-center">
-            <FolderIcon className="text-gray-500 w-14 mx-auto" />
-            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Enter the folder name</h3>
+            <FolderIcon className="text-neutral-500 w-14 mx-auto" />
+            <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">Enter the folder name</h3>
             <TextInput
               value={state.folderName}
               onChange={e =>
