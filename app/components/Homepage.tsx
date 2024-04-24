@@ -8,7 +8,7 @@ import {
   ListBulletIcon,
   Squares2X2Icon,
 } from '@heroicons/react/24/outline';
-import { Button, FileInput, Label, Modal, TextInput } from 'flowbite-react';
+import { Button, FileInput, Modal, TextInput } from 'flowbite-react';
 import { useState } from 'react';
 import cx from 'clsx';
 import useEvent from '../hooks/useEvent';
@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { addFolderToServer, uploadImageOnServer } from '../actions';
 import { useRouter } from 'next/navigation';
+import Thumb from './Thumb';
 
 interface Props {
   images: Image[];
@@ -87,9 +88,13 @@ const Homepage = (props: Props) => {
               <FolderIcon className="text-neutral-300 w-5" />
               <h3 className="text-sm text-neutral-300">Gallery</h3>
             </Link>
-            <div className="py-2 flex flex-col gap-1">
+            <div className="py-2 flex flex-col px-0.5">
               {folders.map(folder => (
-                <Link href={`?folder=${encodeURIComponent(folder.name)}`} key={folder.name} className="flex gap-2 px-3">
+                <Link
+                  href={`?folder=${encodeURIComponent(folder.name)}`}
+                  key={folder.name}
+                  className=" border-l border-l-neutral-700 flex gap-2 px-3 py-1"
+                >
                   <FolderIcon
                     className={cx('text-neutral-500 w-5 h-5', {
                       '!text-neutral-300': folder.name === activeFolder,
@@ -103,8 +108,14 @@ const Homepage = (props: Props) => {
             </div>
           </div>
           <div className="flex gap-2">
-            <StarIcon className="text-neutral-300 w-5" />
-            <h3 className="text-sm text-neutral-300">Starred</h3>
+            <Link
+              href={{ pathname: '/', query: { folder: '', starred: '1' } }}
+              as={{ pathname: '/', query: { folder: '', starred: '1' } }}
+              className="flex gap-2"
+            >
+              <StarIcon className="text-neutral-300 w-5" />
+              <h3 className="text-sm text-neutral-300">Starred</h3>
+            </Link>
           </div>
         </div>
       </div>
@@ -113,12 +124,14 @@ const Homepage = (props: Props) => {
           <div className="flex gap-2">
             <Breadcrumb className="bg-neutral-900 px-3 rounded min-w-[24rem] py-2">
               <Breadcrumb.Item>
-                <Link href="/" className="text-neutral-200">
+                <Link href="/" className="text-neutral-400">
                   Gallery
                 </Link>
               </Breadcrumb.Item>
               <Breadcrumb.Item>
-                <div className="text-neutral-300">{activeFolder}</div>
+                <Link href={{ pathname: '/', query: { folder: activeFolder } }} className="text-neutral-200">
+                  {activeFolder}
+                </Link>
               </Breadcrumb.Item>
             </Breadcrumb>
           </div>
@@ -193,37 +206,7 @@ const Homepage = (props: Props) => {
             })}
           >
             {state.images.map(image => (
-              <Link
-                key={image.path}
-                href={image.path}
-                className={cx({
-                  'flex gap-2 items-center': state.isListView,
-                })}
-                target="_blank"
-                prefetch={false}
-              >
-                <img
-                  src={image.thumb}
-                  alt="Image"
-                  className={cx('rounded', {
-                    'h-40': !state.isListView,
-                    '!w-12 h-12': state.isListView,
-                  })}
-                  style={{
-                    objectFit: 'cover', // TODO: experiment with scale-down option
-                    width: '100%',
-                  }}
-                />
-                <div
-                  className={cx({
-                    hidden: !state.isListView,
-                    'flex-1 flex gap-6 px-2': state.isListView,
-                  })}
-                >
-                  {/* <div>25MB</div> */}
-                  <div>2024-01-01 12:00</div>
-                </div>
-              </Link>
+              <Thumb key={image.path} image={image} state={state} />
             ))}
           </div>
         </div>
