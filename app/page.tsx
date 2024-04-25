@@ -18,7 +18,7 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
   const images = await getImages({ folder: activeFolder, page: Number(activePage), pageSize: Number(activePageSize) });
   const folders = await getAllFolders();
 
-  const key = `${activeFolder}-${activePage}-${activePageSize}`;
+  const key = `${activeFolder}-${activePage}-${activePageSize}-${images.length}`;
 
   return (
     <div>

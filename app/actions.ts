@@ -23,6 +23,7 @@ export async function getImages(props: Props) {
   const { folder = '', page = 1, pageSize = 50 } = props;
 
   const pathFolder = folder ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
+  fs.mkdirSync(pathFolder, { recursive: true });
   const imagesInRootFolder = fs
     .readdirSync(pathFolder)
     .filter(file => file.match(/\.(jpe?g|png|gif)$/i))
