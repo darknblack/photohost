@@ -11,15 +11,16 @@ interface Props {
   state: {
     isListView: boolean;
   };
+  selectImage: () => void;
+  isSelected: boolean;
 }
 
 function Thumb(props: Props) {
-  const { image, state } = props;
-  const [isChecked, setIsChecked] = useState(false);
+  const { image, state, selectImage, isSelected } = props;
   const [isStarred, setIsStarred] = useState(false);
 
   return (
-    <div className="relative group/root">
+    <div className="relative group/thumb">
       <Link
         key={image.path}
         href={image.path}
@@ -50,16 +51,29 @@ function Thumb(props: Props) {
       >
         <div>2024-01-01 12:00</div>
       </div>
-      <div className="group-hover/root:flex hidden rounded bg-neutral-950 bg-opacity-70 absolute w-full h-full left-0 top-0 right-0 bottom-0 flex-col justify-between">
-        <div className="px-1.5 py-0.5">
-          <Checkbox checked={isChecked} onChange={() => setIsChecked(!isChecked)} />
+      <div
+        className={cx(
+          'group-hover/thumb:flex hidden rounded bg-neutral-950 bg-opacity-70 absolute w-full h-full left-0 top-0 right-0 bottom-0 flex-col justify-between',
+          {
+            '!flex bg-opacity-0 hover:bg-opacity-70': isSelected || isStarred,
+          }
+        )}
+      >
+        <div className={cx('px-1 pt-1')}>
+          <Checkbox
+            checked={isSelected}
+            onChange={selectImage}
+            className={cx('group-hover/thumb:block hidden', {
+              '!block': isSelected,
+            })}
+          />
         </div>
-        <div className="flex items-center justify-center w-full">
+        <div className="items-center justify-center w-full flex">
           <Link
             key={image.path}
             href={image.path}
             className={cx(
-              'p-2 border-1 border-neutral-100 bg-white text-neutral-950 bg-opacity-70 rounded-full hover:bg-opacity-100'
+              'p-2 border-1 border-neutral-100 bg-white text-neutral-950 bg-opacity-70 rounded-full hover:bg-opacity-100 hidden group-hover/thumb:block'
             )}
             target="_blank"
             prefetch={false}
@@ -67,12 +81,20 @@ function Thumb(props: Props) {
             <ArrowDownTrayIcon className="w-5" />
           </Link>
         </div>
-        <div className="px-1 pb-0.5">
+        <div
+          className={cx('px-1 hidden group-hover/thumb:block', {
+            '!block': isStarred,
+          })}
+        >
           <button onClick={() => setIsStarred(!isStarred)}>
             {isStarred ? (
-              <StarredIcon className="w-5 h-5 text-yellow-400" />
+              <div className="bg-yellow-300 rounded-full p-0.5">
+                <StarredIcon className="w-4 h-4 text-yellow-600" />
+              </div>
             ) : (
-              <StarIcon className="w-5 h-5 text-neutral-200" />
+              <div className="p-0.5">
+                <StarIcon className="w-4 h-4 text-neutral-200 hover:text-yellow-400" />
+              </div>
             )}
           </button>
         </div>

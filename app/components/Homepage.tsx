@@ -9,7 +9,7 @@ import {
   Squares2X2Icon,
 } from '@heroicons/react/24/outline';
 import { Button, FileInput, Modal, TextInput } from 'flowbite-react';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import cx from 'clsx';
 import useEvent from '../hooks/useEvent';
 import { Breadcrumb } from 'flowbite-react';
@@ -30,6 +30,7 @@ interface Props {
 
 const Homepage = (props: Props) => {
   const { images, folders } = props;
+  const [selectedImagesId, setSelectedImagesId] = useState<string[]>([]);
 
   const searchParams = useSearchParams();
   const activeFolder = searchParams.get('folder') as string;
@@ -55,7 +56,7 @@ const Homepage = (props: Props) => {
     } catch (e) {}
   });
 
-  const createFolder = async () => {
+  const createFolder = useEvent(async () => {
     try {
       const res = await addFolderToServer(state.folderName);
       router.refresh();
@@ -66,7 +67,15 @@ const Homepage = (props: Props) => {
       folderName: '',
       openAddFolder: false,
     });
-  };
+  });
+
+  const selectImage = useEvent((imagePath: string) => {
+    if (selectedImagesId.includes(imagePath)) {
+      setSelectedImagesId(selectedImagesId.filter(i => i !== imagePath));
+    } else {
+      setSelectedImagesId([...selectedImagesId, imagePath]);
+    }
+  });
 
   return (
     <div className="flex bg-neutral-900">
@@ -204,7 +213,13 @@ const Homepage = (props: Props) => {
             })}
           >
             {state.images.map(image => (
-              <Thumb key={image.path} image={image} state={state} />
+              <Thumb
+                key={image.path}
+                image={image}
+                state={state}
+                selectImage={() => selectImage(image.path)}
+                isSelected={selectedImagesId.includes(image.path)}
+              />
             ))}
           </div>
         </div>
@@ -256,7 +271,7 @@ const Homepage = (props: Props) => {
   );
 };
 
-export default Homepage;
+export default memo(Homepage);
 
 {
   /* <div
