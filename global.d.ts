@@ -3,3 +3,8 @@ interface Image {
   thumb: string;
   created: number;
 }
+
+interface Folder {
+  name: string;
+  count: number;
+}

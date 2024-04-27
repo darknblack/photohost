@@ -1,30 +1,20 @@
 'use client';
 
-import {
-  FolderIcon,
-  StarIcon,
-  FolderPlusIcon,
-  PhotoIcon,
-  ListBulletIcon,
-  Squares2X2Icon,
-} from '@heroicons/react/24/outline';
-import { Button, FileInput, Modal, TextInput } from 'flowbite-react';
+import { FolderIcon } from '@heroicons/react/24/outline';
+import { Button, Modal, TextInput } from 'flowbite-react';
 import { memo, useState } from 'react';
 import cx from 'clsx';
 import useEvent from '../hooks/useEvent';
-import { Breadcrumb } from 'flowbite-react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { addFolderToServer, uploadImageOnServer } from '../actions';
 import { useRouter } from 'next/navigation';
 import Thumb from './Thumb';
+import Sidebar from './Sidebar';
+import Header from './Header';
 
 interface Props {
   images: Image[];
-  folders: {
-    name: string;
-    count: number;
-  }[];
+  folders: Folder[];
   activeFolder: string;
 }
 
@@ -38,9 +28,13 @@ const Homepage = (props: Props) => {
 
   const [state, setState] = useState({
     isListView: false,
-    folderName: '',
     openAddFolder: false,
+    folderName: '',
     images: images,
+  });
+
+  const changeState = useEvent((newState: Partial<typeof state>) => {
+    setState({ ...state, ...newState });
   });
 
   const uploadImage = useEvent(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,132 +73,9 @@ const Homepage = (props: Props) => {
 
   return (
     <div className="flex bg-neutral-900">
-      <div id="sidebar" className="min-h-screen w-64 bg-neutral-950 px-5">
-        <Link
-          href={{ pathname: '/', query: { folder: '' } }}
-          as={{ pathname: '/', query: { folder: '' } }}
-          className="block py-6 font-[600] text-zinc-200 text-lg"
-        >
-          Photohost.io
-        </Link>
-        <div className="flex flex-col gap-3 justify-center">
-          <div className="">
-            <Link
-              href={{ pathname: '/', query: { folder: '' } }}
-              as={{ pathname: '/', query: { folder: '' } }}
-              className="flex gap-2"
-            >
-              <FolderIcon className="text-neutral-300 w-5" />
-              <h3 className="text-sm text-neutral-300">Gallery</h3>
-            </Link>
-            <div className="py-2 flex flex-col px-0.5">
-              {folders.map(folder => (
-                <Link
-                  href={`?folder=${encodeURIComponent(folder.name)}`}
-                  key={folder.name}
-                  className=" border-l border-l-neutral-700 flex gap-2 px-3 py-1"
-                >
-                  <FolderIcon
-                    className={cx('text-neutral-500 w-5 h-5', {
-                      '!text-neutral-300': folder.name === activeFolder,
-                    })}
-                  />
-                  <h3 className="text-sm text-neutral-300 flex-1">
-                    {folder.name} <span className={cx('text-xs text-neutral-500')}>({folder.count})</span>
-                  </h3>
-                </Link>
-              ))}
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Link
-              href={{ pathname: '/', query: { folder: '', starred: '1' } }}
-              as={{ pathname: '/', query: { folder: '', starred: '1' } }}
-              className="flex gap-2"
-            >
-              <StarIcon className="text-neutral-300 w-5" />
-              <h3 className="text-sm text-neutral-300">Starred</h3>
-            </Link>
-          </div>
-        </div>
-      </div>
-      <div className="flex-1 p-2">
-        <div className="px-4 py-2 grid grid-cols-2">
-          <div className="flex gap-2">
-            <Breadcrumb className="bg-neutral-900 px-3 rounded min-w-[24rem] py-2">
-              <Breadcrumb.Item>
-                <Link href="/" className="text-neutral-200">
-                  Gallery
-                </Link>
-              </Breadcrumb.Item>
-              <Breadcrumb.Item>
-                <Link href={{ pathname: '/', query: { folder: activeFolder } }} className="text-neutral-200">
-                  {activeFolder}
-                </Link>
-              </Breadcrumb.Item>
-            </Breadcrumb>
-          </div>
-          <div className="flex gap-2 justify-end">
-            <div className="flex items-center justify-center">
-              <Button
-                size="xs"
-                className={cx('bg-transparent rounded-r-none border-r-0 border-neutral-400 cursor-pointer', {
-                  '!bg-gray-300': state.isListView,
-                })}
-                onClick={() => {
-                  setState({ ...state, isListView: true });
-                }}
-              >
-                <ListBulletIcon
-                  className={cx('w-5', {
-                    'text-neutral-700': state.isListView,
-                  })}
-                />
-              </Button>
-              <Button
-                size="xs"
-                className={cx('bg-transparent rounded-l-none border-l-0 !border-neutral-400 cursor-pointer', {
-                  '!bg-gray-200': !state.isListView,
-                })}
-                onClick={() => {
-                  setState({ ...state, isListView: false });
-                }}
-              >
-                <Squares2X2Icon
-                  className={cx('w-5', {
-                    'text-neutral-700': !state.isListView,
-                  })}
-                />
-              </Button>
-            </div>
-            <FileInput
-              id="upload-image"
-              className="hidden"
-              accept="image/png, image/gif, image/jpeg"
-              onChange={uploadImage}
-            />
-            <Button
-              size={'xs'}
-              className="bg-transparent border border-neutral-400"
-              onClick={() => {
-                setState(prev => ({ ...prev, openAddFolder: !prev.openAddFolder }));
-              }}
-            >
-              <FolderPlusIcon className="w-5 text-neutral-200" />
-              <span className="text-neutral-200 text-xs relative top-0.5"></span>
-            </Button>
-            <Button
-              size={'xs'}
-              className="bg-transparent border border-neutral-400"
-              onClick={() => {
-                document.getElementById('upload-image')?.click();
-              }}
-            >
-              <PhotoIcon className="w-5 text-neutral-200" />
-              <span className="text-neutral-200 text-xs relative top-0.5"></span>
-            </Button>
-          </div>
-        </div>
+      <Sidebar folders={folders} activeFolder={activeFolder} />
+      <div id="main-content" className="flex-1 p-2">
+        <Header state={state} changeState={changeState} activeFolder={activeFolder} uploadImage={uploadImage} />
         <div className="">
           <div
             className={cx('grid px-4 py-5', {
