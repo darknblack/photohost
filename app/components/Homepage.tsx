@@ -78,7 +78,7 @@ const Homepage = (props: Props) => {
         >
           Photohost.io
         </Link>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 justify-center">
           <div className="">
             <Link
               href={{ pathname: '/', query: { folder: '' } }}
@@ -120,11 +120,11 @@ const Homepage = (props: Props) => {
         </div>
       </div>
       <div className="flex-1 p-2">
-        <div className="px-4 py-2 flex justify-between">
+        <div className="px-4 py-2 grid grid-cols-2">
           <div className="flex gap-2">
             <Breadcrumb className="bg-neutral-900 px-3 rounded min-w-[24rem] py-2">
               <Breadcrumb.Item>
-                <Link href="/" className="text-neutral-400">
+                <Link href="/" className="text-neutral-200">
                   Gallery
                 </Link>
               </Breadcrumb.Item>
@@ -135,7 +135,7 @@ const Homepage = (props: Props) => {
               </Breadcrumb.Item>
             </Breadcrumb>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-end">
             <div className="flex items-center justify-center">
               <Button
                 size="xs"
@@ -155,7 +155,7 @@ const Homepage = (props: Props) => {
               <Button
                 size="xs"
                 className={cx('bg-transparent rounded-l-none border-l-0 !border-neutral-400 cursor-pointer', {
-                  '!bg-gray-300': !state.isListView,
+                  '!bg-gray-200': !state.isListView,
                 })}
                 onClick={() => {
                   setState({ ...state, isListView: false });
@@ -168,18 +168,6 @@ const Homepage = (props: Props) => {
                 />
               </Button>
             </div>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              size={'sm'}
-              className="bg-transparent border border-neutral-400"
-              onClick={() => {
-                document.getElementById('upload-image')?.click();
-              }}
-            >
-              <PhotoIcon className="w-5 mr-2" />
-              <span className="text-neutral-200 text-xs relative top-0.5">Add item</span>
-            </Button>
             <FileInput
               id="upload-image"
               className="hidden"
@@ -187,14 +175,24 @@ const Homepage = (props: Props) => {
               onChange={uploadImage}
             />
             <Button
-              size={'sm'}
+              size={'xs'}
               className="bg-transparent border border-neutral-400"
               onClick={() => {
                 setState(prev => ({ ...prev, openAddFolder: !prev.openAddFolder }));
               }}
             >
-              <FolderPlusIcon className="w-5 mr-2" />
-              <span className="text-neutral-200 text-xs relative top-0.5">Add folder</span>
+              <FolderPlusIcon className="w-5 text-neutral-200" />
+              <span className="text-neutral-200 text-xs relative top-0.5"></span>
+            </Button>
+            <Button
+              size={'xs'}
+              className="bg-transparent border border-neutral-400"
+              onClick={() => {
+                document.getElementById('upload-image')?.click();
+              }}
+            >
+              <PhotoIcon className="w-5 text-neutral-200" />
+              <span className="text-neutral-200 text-xs relative top-0.5"></span>
             </Button>
           </div>
         </div>
