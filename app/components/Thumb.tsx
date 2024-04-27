@@ -53,7 +53,10 @@ function Thumb(props: Props) {
       </div>
       <div
         className={cx(
-          'group-hover/thumb:flex hidden rounded bg-neutral-950 bg-opacity-70 absolute w-full h-full left-0 top-0 right-0 bottom-0 flex-col justify-between',
+          'group-hover/thumb:flex hidden',
+          'rounded flex-col justify-between',
+          'bg-neutral-950 bg-opacity-70',
+          'absolute w-full h-full left-0 top-0 right-0 bottom-0',
           {
             '!flex bg-opacity-0 hover:bg-opacity-70': isSelected || isStarred,
           }
@@ -73,7 +76,10 @@ function Thumb(props: Props) {
             key={image.path}
             href={image.path}
             className={cx(
-              'p-2 border-1 border-neutral-100 bg-white text-neutral-950 bg-opacity-70 rounded-full hover:bg-opacity-100 hidden group-hover/thumb:block'
+              'group-hover/thumb:block hidden',
+              'p-2 rounded-full',
+              'border-1 border-neutral-100 bg-white text-neutral-950 bg-opacity-70',
+              'hover:bg-opacity-100'
             )}
             target="_blank"
             prefetch={false}
@@ -82,7 +88,7 @@ function Thumb(props: Props) {
           </Link>
         </div>
         <div
-          className={cx('px-1 hidden group-hover/thumb:block', {
+          className={cx('group-hover/thumb:block hidden', 'px-1', {
             '!block': isStarred,
           })}
         >
