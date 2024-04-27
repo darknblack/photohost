@@ -55,10 +55,10 @@ function Thumb(props: Props) {
         className={cx(
           'group-hover/thumb:flex hidden',
           'rounded flex-col justify-between',
-          'bg-neutral-950 bg-opacity-70',
+          'bg-neutral-950 bg-opacity-75',
           'absolute w-full h-full left-0 top-0 right-0 bottom-0',
           {
-            '!flex bg-opacity-0 hover:bg-opacity-70': isSelected || isStarred,
+            '!flex !bg-opacity-0 hover:!bg-opacity-75': isSelected || isStarred,
           }
         )}
       >
@@ -78,7 +78,7 @@ function Thumb(props: Props) {
             className={cx(
               'group-hover/thumb:block hidden',
               'p-2 rounded-full',
-              'border-1 border-neutral-100 bg-white text-neutral-950 bg-opacity-70',
+              'border-1 border-neutral-100 bg-neutral-500 bg-opacity-75 text-neutral-300 ',
               'hover:bg-opacity-100'
             )}
             target="_blank"
@@ -99,7 +99,7 @@ function Thumb(props: Props) {
               </div>
             ) : (
               <div className="p-0.5">
-                <StarIcon className="w-4 h-4 text-neutral-200 hover:text-yellow-400" />
+                <StarIcon className="w-4 h-4 text-neutral-300 hover:text-yellow-400" />
               </div>
             )}
           </button>

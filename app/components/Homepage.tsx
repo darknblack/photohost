@@ -2,7 +2,7 @@
 
 import { FolderIcon } from '@heroicons/react/24/outline';
 import { Button, Modal, TextInput } from 'flowbite-react';
-import { memo, useState } from 'react';
+import { Suspense, memo, useState } from 'react';
 import cx from 'clsx';
 import useEvent from '../hooks/useEvent';
 import { useSearchParams } from 'next/navigation';
@@ -83,15 +83,17 @@ const Homepage = (props: Props) => {
               'grid-cols-8 gap-2': !state.isListView,
             })}
           >
-            {state.images.map(image => (
-              <Thumb
-                key={image.path}
-                image={image}
-                state={state}
-                selectImage={() => selectImage(image.path)}
-                isSelected={selectedImagesId.includes(image.path)}
-              />
-            ))}
+            <Suspense fallback={<div>Loading...</div>}>
+              {state.images.map(image => (
+                <Thumb
+                  key={image.path}
+                  image={image}
+                  state={state}
+                  selectImage={() => selectImage(image.path)}
+                  isSelected={selectedImagesId.includes(image.path)}
+                />
+              ))}
+            </Suspense>
           </div>
         </div>
       </div>
