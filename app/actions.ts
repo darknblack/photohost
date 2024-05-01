@@ -100,6 +100,7 @@ export async function uploadImageOnServer(formData: FormData, folder: string) {
 
   // Create the image and save it to disk
   fs.writeFileSync(imagePath, buffer);
+  fs.mkdirSync(path.join(THUMBS_ROOT_PATH, folder), { recursive: true });
 
   // Create the thumbnail and save it to disk
   await ImageManipulation.downScale(sharp(buffer), thumbPath, 360, imagePath);

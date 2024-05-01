@@ -11,7 +11,6 @@ import { useRouter } from 'next/navigation';
 import Thumb from './Thumb';
 import Sidebar from './Sidebar';
 import Header from './Header';
-
 interface Props {
   images: Image[];
   folders: Folder[];
@@ -71,11 +70,29 @@ const Homepage = (props: Props) => {
     }
   });
 
+  const selectAllImages = useEvent(() => {
+    if (selectedImagesId.length === state.images.length) {
+      setSelectedImagesId([]);
+    } else {
+      setSelectedImagesId(state.images.map(image => image.path));
+    }
+  });
+
+  const isAllSelected = selectedImagesId.length === state.images.length;
+
   return (
     <div className="flex bg-neutral-900">
       <Sidebar folders={folders} activeFolder={activeFolder} />
       <div id="main-content" className="flex-1 p-2">
-        <Header state={state} changeState={changeState} activeFolder={activeFolder} uploadImage={uploadImage} />
+        <Header
+          state={state}
+          changeState={changeState}
+          activeFolder={activeFolder}
+          uploadImage={uploadImage}
+          selectedImagesId={selectedImagesId}
+          selectAllImages={selectAllImages}
+          isAllSelected={isAllSelected}
+        />
         <div className="">
           <div
             className={cx('grid px-4 py-5', {
