@@ -112,6 +112,48 @@ export async function addFolderToServer(folder: string) {
   fs.mkdirSync(path.join(THUMBS_ROOT_PATH, folder), { recursive: true });
 }
 
+export async function deleteFilesFromServer(folder: string, arr: string[]) {
+  for (let i = 0; arr.length > i; i++) {
+    const filename = arr[i];
+
+    const fileFolder = folder !== '' ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
+    const thumbFolder = folder !== '' ? path.join(THUMBS_ROOT_PATH, folder) : THUMBS_ROOT_PATH;
+
+    const fullFilePath = path.join(fileFolder, filename);
+    const fullThumbPath = path.join(thumbFolder, filename);
+
+    if (fs.existsSync(fullFilePath)) fs.unlinkSync(fullFilePath);
+    if (fs.existsSync(fullThumbPath)) fs.unlinkSync(fullThumbPath);
+  }
+}
+
+export async function deleteFoldersFromServer(folders: string[]) {
+  for (let i = 0; folders.length > i; i++) {
+    const folder = folders[i];
+
+    const folderPath = path.join(GALLERY_ROOT_PATH, folder);
+    const thumbPath = path.join(THUMBS_ROOT_PATH, folder);
+
+    if (folder && fs.existsSync(folderPath)) {
+      fs.rmdirSync(folderPath);
+    }
+
+    if (folder && fs.existsSync(thumbPath)) {
+      fs.rmdirSync(thumbPath);
+    }
+  }
+}
+
+export async function renameFolder(folder: string, newFolder: string) {
+  if (folder && fs.existsSync(path.join(GALLERY_ROOT_PATH, folder))) {
+    fs.renameSync(path.join(GALLERY_ROOT_PATH, folder), path.join(GALLERY_ROOT_PATH, newFolder));
+  }
+
+  if (folder && fs.existsSync(path.join(THUMBS_ROOT_PATH, folder))) {
+    fs.renameSync(path.join(THUMBS_ROOT_PATH, folder), path.join(THUMBS_ROOT_PATH, newFolder));
+  }
+}
+
 function encodeObjectToQueryString(obj: any) {
   const parts = [];
   for (const key in obj) {

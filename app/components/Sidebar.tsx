@@ -1,9 +1,11 @@
 'use client';
 
-import { FolderIcon, StarIcon } from '@heroicons/react/24/outline';
+import { FolderIcon, StarIcon, TrashIcon } from '@heroicons/react/24/outline';
 import cx from 'clsx';
 import Link from 'next/link';
 import { memo } from 'react';
+import { deleteFoldersFromServer } from '../actions';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   folders: Folder[];
@@ -12,6 +14,7 @@ interface Props {
 
 function Sidebar(props: Props) {
   const { folders, activeFolder } = props;
+  const router = useRouter();
 
   return (
     <div id="sidebar" className="min-h-screen w-64 bg-neutral-950 px-5">
@@ -34,20 +37,20 @@ function Sidebar(props: Props) {
           </Link>
           <div className="py-2 flex flex-col px-0.5">
             {folders.map(folder => (
-              <Link
-                href={`?folder=${encodeURIComponent(folder.name)}`}
-                key={folder.name}
-                className=" border-l border-l-neutral-700 flex gap-2 px-3 py-1"
-              >
-                <FolderIcon
-                  className={cx('text-neutral-500 w-5 h-5', {
-                    '!text-neutral-300': folder.name === activeFolder,
-                  })}
-                />
-                <h3 className="text-sm text-neutral-300 flex-1">
-                  {folder.name} <span className={cx('text-xs text-neutral-500')}>({folder.count})</span>
-                </h3>
-              </Link>
+              <div key={folder.name} className=" border-l border-l-neutral-700 flex justify-between">
+                <div className="flex gap-2 px-3 py-1">
+                  <FolderIcon
+                    className={cx('text-neutral-500 w-5 h-5 shrink-0', {
+                      '!text-neutral-300': folder.name === activeFolder,
+                    })}
+                  />
+                  <div>
+                    <Link className="text-sm text-neutral-300" href={`?folder=${encodeURIComponent(folder.name)}`}>
+                      {folder.name} <span className={cx('text-xs text-neutral-500')}>({folder.count})</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>

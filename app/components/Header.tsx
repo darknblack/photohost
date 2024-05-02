@@ -17,6 +17,8 @@ import cx from 'clsx';
 import { Breadcrumb } from 'flowbite-react';
 import Link from 'next/link';
 import { memo } from 'react';
+import { deleteFilesFromServer } from '../actions';
+import { useRouter } from 'next/navigation';
 
 interface State {
   isListView: boolean;
@@ -35,6 +37,7 @@ interface Props {
 
 function Header(props: Props) {
   const { state, changeState, activeFolder, uploadImage, selectedImagesId, selectAllImages, isAllSelected } = props;
+  const router = useRouter();
 
   return (
     <div id="header" className="px-4 py-2 grid grid-cols-3">
@@ -89,7 +92,26 @@ function Header(props: Props) {
           disabled={selectedImagesId.length === 0}
           className="bg-transparent py-0.5 border border-neutral-400"
         >
-          <TrashIcon className="w-5 text-neutral-200" />
+          <TrashIcon
+            className="w-5 text-neutral-200"
+            onClick={async () => {
+              try {
+                await deleteFilesFromServer(
+                  activeFolder,
+                  selectedImagesId.map(item => {
+                    const [, queryString] = item.split('?');
+
+                    // Extract the filename from the query string
+                    const params = new URLSearchParams(queryString);
+                    const filename = params.get('image');
+
+                    return filename as string;
+                  })
+                );
+                router.refresh();
+              } catch (e) {}
+            }}
+          />
         </Button>
       </div>
       <div className="flex gap-2 justify-end">
