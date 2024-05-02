@@ -195,9 +195,10 @@ function Header(props: Props) {
                 onClick={async () => {
                   setIsRenameModalOpen(false);
                   try {
-                    const res = await renameFolder(activeFolder, formFolderName);
+                    const formatedFolderName = formFolderName.trim();
+                    const res = await renameFolder(activeFolder, formatedFolderName);
                     if (res) {
-                      router.replace(`/?folder=${encodeURIComponent(formFolderName)}`);
+                      router.replace(`/?folder=${encodeURIComponent(formatedFolderName)}`);
                     }
                   } catch (e) {
                     console.error(e);
