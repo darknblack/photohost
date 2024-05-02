@@ -12,12 +12,12 @@ import {
   XMarkIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
-import { Button, FileInput } from 'flowbite-react';
+import { Button, FileInput, Modal, TextInput } from 'flowbite-react';
 import cx from 'clsx';
 import { Breadcrumb } from 'flowbite-react';
 import Link from 'next/link';
-import { memo } from 'react';
-import { deleteFilesFromServer } from '../actions';
+import { memo, useState } from 'react';
+import { deleteFilesFromServer, renameFolder } from '../actions';
 import { useRouter } from 'next/navigation';
 
 interface State {
@@ -38,6 +38,8 @@ interface Props {
 function Header(props: Props) {
   const { state, changeState, activeFolder, uploadImage, selectedImagesId, selectAllImages, isAllSelected } = props;
   const router = useRouter();
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [formFolderName, setFormFolderName] = useState(activeFolder);
 
   return (
     <div id="header" className="px-4 py-2 grid grid-cols-3">
@@ -57,6 +59,10 @@ function Header(props: Props) {
               className={cx('ml-2.5 hidden', {
                 '!block': activeFolder && activeFolder !== '',
               })}
+              onClick={() => {
+                setFormFolderName(activeFolder);
+                setIsRenameModalOpen(true);
+              }}
             >
               <PencilIcon className={cx('w-4 text-neutral-500 hover:text-neutral-200')} />
             </button>
@@ -174,6 +180,44 @@ function Header(props: Props) {
           <span className="text-neutral-200 text-xs relative top-0.5"></span>
         </Button>
       </div>
+      <Modal show={isRenameModalOpen} size="md" popup dismissible onClose={() => setIsRenameModalOpen(false)}>
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <PencilIcon className="text-neutral-500 w-14 mx-auto" />
+            <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">
+              Enter the new folder name
+            </h3>
+            <TextInput value={formFolderName} onChange={e => setFormFolderName(e.target.value)} />
+
+            <div className="flex justify-center gap-4 mt-6">
+              <Button
+                onClick={async () => {
+                  setIsRenameModalOpen(false);
+                  try {
+                    const res = await renameFolder(activeFolder, formFolderName);
+                    if (res) {
+                      router.replace(`/?folder=${encodeURIComponent(formFolderName)}`);
+                    }
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+              >
+                Rename
+              </Button>
+              <Button
+                color="gray"
+                onClick={() => {
+                  setIsRenameModalOpen(false);
+                }}
+              >
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }

@@ -16,6 +16,8 @@ export async function getImages(props: Props) {
   const { folder = '', page = 1, pageSize = 50 } = props;
 
   const pathFolder = folder ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
+  if (folder && !fs.existsSync(pathFolder)) return undefined;
+
   fs.mkdirSync(pathFolder, { recursive: true });
   const imagesInRootFolder = fs
     .readdirSync(pathFolder)
@@ -145,13 +147,25 @@ export async function deleteFoldersFromServer(folders: string[]) {
 }
 
 export async function renameFolder(folder: string, newFolder: string) {
-  if (folder && fs.existsSync(path.join(GALLERY_ROOT_PATH, folder))) {
-    fs.renameSync(path.join(GALLERY_ROOT_PATH, folder), path.join(GALLERY_ROOT_PATH, newFolder));
+  const oldPath = path.join(GALLERY_ROOT_PATH, folder);
+  const newPath = path.join(GALLERY_ROOT_PATH, newFolder);
+
+  let f1 = false;
+  let f2 = false;
+
+  if (folder && fs.existsSync(oldPath)) {
+    fs.renameSync(oldPath, newPath);
+    f1 = true;
   }
 
-  if (folder && fs.existsSync(path.join(THUMBS_ROOT_PATH, folder))) {
-    fs.renameSync(path.join(THUMBS_ROOT_PATH, folder), path.join(THUMBS_ROOT_PATH, newFolder));
+  const oldThumbPath = path.join(THUMBS_ROOT_PATH, folder);
+  const newThumbPath = path.join(THUMBS_ROOT_PATH, newFolder);
+  if (folder && fs.existsSync(oldThumbPath)) {
+    fs.renameSync(oldThumbPath, newThumbPath);
+    f2 = true;
   }
+
+  return f1 && f2;
 }
 
 function encodeObjectToQueryString(obj: any) {

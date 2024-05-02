@@ -4,8 +4,6 @@ import { FolderIcon, StarIcon, TrashIcon } from '@heroicons/react/24/outline';
 import cx from 'clsx';
 import Link from 'next/link';
 import { memo } from 'react';
-import { deleteFoldersFromServer } from '../actions';
-import { useRouter } from 'next/navigation';
 
 interface Props {
   folders: Folder[];
@@ -14,7 +12,6 @@ interface Props {
 
 function Sidebar(props: Props) {
   const { folders, activeFolder } = props;
-  const router = useRouter();
 
   return (
     <div id="sidebar" className="min-h-screen w-64 bg-neutral-950 px-5">

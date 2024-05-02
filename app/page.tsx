@@ -16,6 +16,11 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
   if (!activePageSize) activePageSize = 50;
 
   const images = await getImages({ folder: activeFolder, page: Number(activePage), pageSize: Number(activePageSize) });
+
+  if (images === undefined) {
+    return <div>Something went wrong</div>;
+  }
+
   const folders = await getAllFolders();
 
   const key = `${activeFolder}-${activePage}-${activePageSize}-${images.length}`;
