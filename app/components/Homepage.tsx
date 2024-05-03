@@ -2,15 +2,15 @@
 
 import { FolderIcon } from '@heroicons/react/24/outline';
 import { Button, Modal, TextInput } from 'flowbite-react';
-import { Suspense, memo, useState } from 'react';
+import { useState } from 'react';
 import cx from 'clsx';
 import useEvent from '../hooks/useEvent';
-import { useSearchParams } from 'next/navigation';
 import { addFolderToServer, uploadImageOnServer } from '../actions';
 import { useRouter } from 'next/navigation';
 import Thumb from './Thumb';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import Link from 'next/link';
 interface Props {
   images: Image[];
   folders: Folder[];
@@ -18,11 +18,8 @@ interface Props {
 }
 
 const Homepage = (props: Props) => {
-  const { images, folders } = props;
+  const { images, folders, activeFolder } = props;
   const [selectedImagesId, setSelectedImagesId] = useState<string[]>([]);
-
-  const searchParams = useSearchParams();
-  const activeFolder = searchParams.get('folder') as string;
   const router = useRouter();
 
   const [state, setState] = useState({
@@ -44,8 +41,10 @@ const Homepage = (props: Props) => {
     formData.append('file', file);
 
     try {
-      const res = await uploadImageOnServer(formData, activeFolder);
-      if (res === 1) router.refresh();
+      const res = await uploadImageOnServer(activeFolder, formData);
+      if (res === 1) {
+        router.refresh();
+      }
     } catch (e) {}
   });
 
@@ -92,6 +91,7 @@ const Homepage = (props: Props) => {
           selectedImagesId={selectedImagesId}
           selectAllImages={selectAllImages}
           isAllSelected={isAllSelected}
+          images={state.images}
         />
         <div className="">
           <div
@@ -100,17 +100,27 @@ const Homepage = (props: Props) => {
               'grid-cols-8 gap-2': !state.isListView,
             })}
           >
-            <Suspense fallback={<div>Loading...</div>}>
-              {state.images.map(image => (
-                <Thumb
-                  key={image.path}
-                  image={image}
-                  state={state}
-                  selectImage={() => selectImage(image.path)}
-                  isSelected={selectedImagesId.includes(image.path)}
-                />
+            {activeFolder === '' &&
+              folders.map(folder => (
+                <Link
+                  key={folder.name}
+                  href={{ pathname: '/', query: { folder: folder.name } }}
+                  as={{ pathname: '/', query: { folder: folder.name } }}
+                  className="flex items-center justify-center flex-col group/folder"
+                >
+                  <FolderIcon className="text-neutral-400 w-20 group-hover/folder:text-neutral-300" />
+                  <h3 className="text-center text-neutral-300 group-hover/folder:text-neutral-200">{folder.name}</h3>
+                </Link>
               ))}
-            </Suspense>
+            {state.images.map(image => (
+              <Thumb
+                key={image.path}
+                image={image}
+                state={state}
+                selectImage={() => selectImage(image.path)}
+                isSelected={selectedImagesId.includes(image.path)}
+              />
+            ))}
           </div>
         </div>
       </div>
@@ -161,7 +171,7 @@ const Homepage = (props: Props) => {
   );
 };
 
-export default memo(Homepage);
+export default Homepage;
 
 {
   /* <div

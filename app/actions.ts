@@ -79,7 +79,7 @@ export async function getAllFolders(): Promise<
   return folders;
 }
 
-export async function uploadImageOnServer(formData: FormData, folder: string) {
+export async function uploadImageOnServer(folder: string, formData: FormData) {
   const file = formData.get('file');
 
   // @ts-ignore

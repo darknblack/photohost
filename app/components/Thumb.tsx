@@ -3,9 +3,9 @@ import Link from 'next/link';
 import cx from 'clsx';
 import { StarIcon } from '@heroicons/react/24/outline';
 import { StarIcon as StarredIcon } from '@heroicons/react/16/solid';
-import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
+import { ArrowTopRightOnSquareIcon, ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 import { Checkbox } from 'flowbite-react';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 interface Props {
   image: Image;
   state: {
@@ -71,13 +71,26 @@ function Thumb(props: Props) {
             })}
           />
         </div>
-        <div className="items-center justify-center w-full flex">
+        <div className="items-center justify-center w-full flex gap-1.5">
           <Link
             key={image.path}
             href={image.path}
             className={cx(
               'group-hover/thumb:block hidden',
-              'p-2 rounded-full',
+              'p-2 rounded-md',
+              'border-1 border-neutral-100 bg-neutral-500 bg-opacity-75 text-neutral-300 ',
+              'hover:bg-opacity-100'
+            )}
+            target="_blank"
+            prefetch={false}
+          >
+            <ArrowTopRightOnSquareIcon className="w-5" />
+          </Link>
+          <Link
+            href={image.path}
+            className={cx(
+              'group-hover/thumb:block hidden',
+              'p-2 rounded-md',
               'border-1 border-neutral-100 bg-neutral-500 bg-opacity-75 text-neutral-300 ',
               'hover:bg-opacity-100'
             )}
@@ -109,4 +122,4 @@ function Thumb(props: Props) {
   );
 }
 
-export default Thumb;
+export default memo(Thumb);

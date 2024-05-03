@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { memo, useState } from 'react';
 import { deleteFilesFromServer, renameFolder } from '../actions';
 import { useRouter } from 'next/navigation';
+import useEvent from '../hooks/useEvent';
 
 interface State {
   isListView: boolean;
@@ -33,13 +34,34 @@ interface Props {
   selectedImagesId: string[];
   selectAllImages: () => void;
   isAllSelected: boolean;
+  images: Image[];
 }
 
 function Header(props: Props) {
-  const { state, changeState, activeFolder, uploadImage, selectedImagesId, selectAllImages, isAllSelected } = props;
+  const { state, changeState, activeFolder, uploadImage, selectedImagesId, selectAllImages, isAllSelected, images } =
+    props;
   const router = useRouter();
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [formFolderName, setFormFolderName] = useState(activeFolder);
+
+  const deleteFilesFromServerHandler = useEvent(async () => {
+    try {
+      await deleteFilesFromServer(
+        activeFolder,
+        selectedImagesId
+          .filter(item => item)
+          .map(item => {
+            const [, queryString] = item.split('?');
+
+            // Extract the filename from the query string
+            const params = new URLSearchParams(queryString);
+            const filename = params.get('image');
+            return filename as string;
+          })
+      );
+      router.refresh();
+    } catch (e) {}
+  });
 
   return (
     <div id="header" className="px-4 py-2 grid grid-cols-3">
@@ -74,8 +96,9 @@ function Header(props: Props) {
           size="xs"
           className="bg-transparent py-1 border border-neutral-400 min-w-[6.8rem]"
           onClick={selectAllImages}
+          disabled={images.length === 0}
         >
-          {!isAllSelected ? (
+          {images.length === 0 || !isAllSelected ? (
             <>
               <span>Select All</span>
               <CheckIcon className="ml-1 w-3.5" />
@@ -97,27 +120,9 @@ function Header(props: Props) {
           size="xs"
           disabled={selectedImagesId.length === 0}
           className="bg-transparent py-0.5 border border-neutral-400"
+          onClick={deleteFilesFromServerHandler}
         >
-          <TrashIcon
-            className="w-5 text-neutral-200"
-            onClick={async () => {
-              try {
-                await deleteFilesFromServer(
-                  activeFolder,
-                  selectedImagesId.map(item => {
-                    const [, queryString] = item.split('?');
-
-                    // Extract the filename from the query string
-                    const params = new URLSearchParams(queryString);
-                    const filename = params.get('image');
-
-                    return filename as string;
-                  })
-                );
-                router.refresh();
-              } catch (e) {}
-            }}
-          />
+          <TrashIcon className="w-5 text-neutral-200" />
         </Button>
       </div>
       <div className="flex gap-2 justify-end">
@@ -200,6 +205,7 @@ function Header(props: Props) {
                     if (res) {
                       router.replace(`/?folder=${encodeURIComponent(formatedFolderName)}`);
                     }
+                    router.refresh();
                   } catch (e) {
                     console.error(e);
                   }

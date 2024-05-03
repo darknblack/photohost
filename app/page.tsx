@@ -1,14 +1,14 @@
 import Homepage from './components/Homepage';
 import { getAllFolders, getImages } from './actions';
 
-export const dynamic = 'force-dynamic';
-
 type searchParams = {
   [key: string]: string | string[] | undefined;
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home({ searchParams }: { searchParams?: searchParams }) {
-  const activeFolder = ((searchParams && searchParams['folder']) ?? '') as string;
+  const activeFolder = (((searchParams && searchParams['folder']) ?? '') as string) || '';
   let activePage: string | number = ((searchParams && searchParams['page']) ?? '') as string;
   let activePageSize: string | number = ((searchParams && searchParams['pageSize']) ?? '') as string;
 
@@ -23,11 +23,9 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
 
   const folders = await getAllFolders();
 
-  const key = `${activeFolder}-${activePage}-${activePageSize}-${images.length}`;
-
   return (
     <div>
-      <Homepage key={key} images={images} folders={folders} activeFolder={activeFolder} />
+      <Homepage key={new Date().getTime()} images={images} folders={folders} activeFolder={activeFolder} />
     </div>
   );
 }
