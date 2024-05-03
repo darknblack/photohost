@@ -34,18 +34,21 @@ const Homepage = (props: Props) => {
   });
 
   const uploadImage = useEvent(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e && e.target && e.target.files && e.target.files[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
+    for (let i = 0; files.length > i; i++) {
+      const file = files[i];
+      const formData = new FormData();
+      formData.append('file', file);
 
-    try {
-      const res = await uploadImageOnServer(activeFolder, formData);
-      if (res === 1) {
-        router.refresh();
-      }
-    } catch (e) {}
+      try {
+        const res = await uploadImageOnServer(activeFolder, formData);
+        if (res === 1) {
+          router.refresh();
+        }
+      } catch (e) {}
+    }
   });
 
   const createFolder = useEvent(async () => {

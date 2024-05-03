@@ -118,9 +118,10 @@ export async function deleteFilesFromServer(folder: string, arr: string[]) {
   for (let i = 0; arr.length > i; i++) {
     const filename = arr[i];
 
-    const fileFolder = folder !== '' ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
-    const fullFilePath = path.join(fileFolder, filename);
+    const baseFolder = folder !== '' ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
+    const fullFilePath = path.join(baseFolder, filename);
 
+    // thumb folder + filename
     const fullThumbPath = path.join(THUMBS_ROOT_PATH, filename);
 
     if (fs.existsSync(fullFilePath)) fs.unlinkSync(fullFilePath);

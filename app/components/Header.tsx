@@ -183,6 +183,7 @@ function Header(props: Props) {
         <FileInput
           id="upload-image"
           className="hidden"
+          multiple
           accept="image/png, image/gif, image/jpeg"
           onChange={uploadImage}
         />
