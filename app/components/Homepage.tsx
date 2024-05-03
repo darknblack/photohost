@@ -92,6 +92,7 @@ const Homepage = (props: Props) => {
           selectAllImages={selectAllImages}
           isAllSelected={isAllSelected}
           images={state.images}
+          folders={folders}
         />
         <div className="">
           <div

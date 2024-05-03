@@ -1,5 +1,4 @@
 import sharp from 'sharp';
-import fs from 'fs';
 
 const ImageManipulation = {
   downScale: async (image: sharp.Sharp, outputPath: string, targetWidth = 220, actualPath: string) => {
@@ -16,8 +15,6 @@ const ImageManipulation = {
         .withMetadata()
         .toFile(outputPath);
     }
-
-    fs.symlinkSync(actualPath, outputPath);
 
     return image;
   },

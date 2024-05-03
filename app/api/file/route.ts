@@ -13,14 +13,36 @@ export function GET(req: NextRequest) {
     const ext = (image && image.split('.').pop()?.toLocaleLowerCase()) || '';
 
     if (image && VALID_EXTENSIONS.includes(ext)) {
-      const res = getFile(folder, image, thumb !== null ? THUMBS_ROOT_PATH : GALLERY_ROOT_PATH);
-      if (res) {
-        return new NextResponse(res, {
-          headers: {
-            'Content-Type': 'image/' + ext,
-            'Cache-Control': 'public, max-age=5',
-          },
-        });
+      if (thumb === null) {
+        const res = getFile(folder, image, GALLERY_ROOT_PATH);
+        if (res) {
+          return new NextResponse(res, {
+            headers: {
+              'Content-Type': 'image/' + ext,
+              'Cache-Control': 'public, max-age=5',
+            },
+          });
+        }
+      } else {
+        const res = getFile('', image, THUMBS_ROOT_PATH);
+        if (res) {
+          return new NextResponse(res, {
+            headers: {
+              'Content-Type': 'image/' + ext,
+              'Cache-Control': 'public, max-age=5',
+            },
+          });
+        } else {
+          const res = getFile(folder, image, GALLERY_ROOT_PATH);
+          if (res) {
+            return new NextResponse(res, {
+              headers: {
+                'Content-Type': 'image/' + ext,
+                'Cache-Control': 'public, max-age=5',
+              },
+            });
+          }
+        }
       }
     }
   } catch (error) {

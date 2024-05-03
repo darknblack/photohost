@@ -12,12 +12,12 @@ import {
   XMarkIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
-import { Button, FileInput, Modal, TextInput } from 'flowbite-react';
+import { Button, FileInput, Modal, TextInput, Select } from 'flowbite-react';
 import cx from 'clsx';
 import { Breadcrumb } from 'flowbite-react';
 import Link from 'next/link';
-import { memo, useState } from 'react';
-import { deleteFilesFromServer, renameFolder } from '../actions';
+import { memo, useRef, useState } from 'react';
+import { deleteFilesFromServer, moveFilesFromServer, renameFolder } from '../actions';
 import { useRouter } from 'next/navigation';
 import useEvent from '../hooks/useEvent';
 
@@ -35,30 +35,43 @@ interface Props {
   selectAllImages: () => void;
   isAllSelected: boolean;
   images: Image[];
+  folders: Folder[];
 }
 
 function Header(props: Props) {
-  const { state, changeState, activeFolder, uploadImage, selectedImagesId, selectAllImages, isAllSelected, images } =
-    props;
+  const {
+    state,
+    changeState,
+    activeFolder,
+    uploadImage,
+    selectedImagesId,
+    selectAllImages,
+    isAllSelected,
+    images,
+    folders,
+  } = props;
   const router = useRouter();
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
-  const [formFolderName, setFormFolderName] = useState(activeFolder);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [formAddFolderName, setFormAddFolderName] = useState(activeFolder);
+
+  const rElDestinationFolder = useRef<any>();
+
+  const fSelectedImagesId = selectedImagesId
+    .filter(item => item)
+    .map(item => {
+      const [, queryString] = item.split('?');
+
+      // Extract the filename from the query string
+      const params = new URLSearchParams(queryString);
+      const filename = params.get('image');
+      return filename as string;
+    });
 
   const deleteFilesFromServerHandler = useEvent(async () => {
     try {
-      await deleteFilesFromServer(
-        activeFolder,
-        selectedImagesId
-          .filter(item => item)
-          .map(item => {
-            const [, queryString] = item.split('?');
-
-            // Extract the filename from the query string
-            const params = new URLSearchParams(queryString);
-            const filename = params.get('image');
-            return filename as string;
-          })
-      );
+      await deleteFilesFromServer(activeFolder, fSelectedImagesId);
       router.refresh();
     } catch (e) {}
   });
@@ -82,7 +95,7 @@ function Header(props: Props) {
                 '!block': activeFolder && activeFolder !== '',
               })}
               onClick={() => {
-                setFormFolderName(activeFolder);
+                setFormAddFolderName(activeFolder);
                 setIsRenameModalOpen(true);
               }}
             >
@@ -113,14 +126,23 @@ function Header(props: Props) {
         <Button size="xs" disabled={selectedImagesId.length === 0} className="bg-transparent border border-neutral-400">
           <ArrowDownTrayIcon className="w-5 text-neutral-200" />
         </Button>
-        <Button size="xs" disabled={selectedImagesId.length === 0} className="bg-transparent border border-neutral-400">
+        <Button
+          size="xs"
+          disabled={selectedImagesId.length === 0 || folders.length === 0}
+          className="bg-transparent border border-neutral-400"
+          onClick={() => {
+            setIsMoveModalOpen(true);
+          }}
+        >
           <ArrowRightStartOnRectangleIcon className="w-5 text-neutral-200" />
         </Button>
         <Button
           size="xs"
           disabled={selectedImagesId.length === 0}
           className="bg-transparent py-0.5 border border-neutral-400"
-          onClick={deleteFilesFromServerHandler}
+          onClick={() => {
+            setIsDeleteModalOpen(true);
+          }}
         >
           <TrashIcon className="w-5 text-neutral-200" />
         </Button>
@@ -193,14 +215,14 @@ function Header(props: Props) {
             <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">
               Enter the new folder name
             </h3>
-            <TextInput value={formFolderName} onChange={e => setFormFolderName(e.target.value)} />
+            <TextInput value={formAddFolderName} onChange={e => setFormAddFolderName(e.target.value)} />
 
             <div className="flex justify-center gap-4 mt-6">
               <Button
                 onClick={async () => {
                   setIsRenameModalOpen(false);
                   try {
-                    const formatedFolderName = formFolderName.trim();
+                    const formatedFolderName = formAddFolderName.trim();
                     const res = await renameFolder(activeFolder, formatedFolderName);
                     if (res) {
                       router.replace(`/?folder=${encodeURIComponent(formatedFolderName)}`);
@@ -217,6 +239,75 @@ function Header(props: Props) {
                 color="gray"
                 onClick={() => {
                   setIsRenameModalOpen(false);
+                }}
+              >
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal show={isDeleteModalOpen} size="md" popup dismissible onClose={() => setIsDeleteModalOpen(false)}>
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <TrashIcon className="text-red-500 w-14 mx-auto" />
+            <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">
+              {fSelectedImagesId.length > 1
+                ? `Are you sure you want to delete ${fSelectedImagesId.length} images?`
+                : `Are you sure you want to delete this image?`}
+            </h3>
+
+            <div className="flex justify-center gap-4 mt-6">
+              <Button
+                color="red"
+                outline={false}
+                onClick={async () => {
+                  await deleteFilesFromServerHandler();
+                }}
+              >
+                Delete
+              </Button>
+              <Button color="gray" onClick={() => {}}>
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal show={isMoveModalOpen} size="md" popup dismissible onClose={() => setIsMoveModalOpen(false)}>
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <ArrowRightStartOnRectangleIcon className="text-neutral-500 w-14 mx-auto" />
+            <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">
+              Select the destination folder
+            </h3>
+            <Select ref={rElDestinationFolder}>
+              {activeFolder !== '' && <option value="">Select a folder</option>}
+              {folders.map(folder => (
+                <option key={folder.name} value={folder.name} disabled={folder.name === activeFolder}>
+                  {folder.name}
+                </option>
+              ))}
+            </Select>
+
+            <div className="flex justify-center gap-4 mt-6">
+              <Button
+                onClick={async () => {
+                  const value = rElDestinationFolder.current?.value;
+                  if (!value) return;
+
+                  await moveFilesFromServer(activeFolder, value, fSelectedImagesId);
+                  router.refresh();
+                }}
+              >
+                Move
+              </Button>
+              <Button
+                color="gray"
+                onClick={() => {
+                  setIsMoveModalOpen(false);
                 }}
               >
                 No, cancel
