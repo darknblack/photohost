@@ -204,8 +204,8 @@ function Header(props: Props) {
                     const res = await renameFolder(activeFolder, formatedFolderName);
                     if (res) {
                       router.replace(`/?folder=${encodeURIComponent(formatedFolderName)}`);
+                      router.refresh();
                     }
-                    router.refresh();
                   } catch (e) {
                     console.error(e);
                   }

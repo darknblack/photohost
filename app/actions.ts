@@ -3,6 +3,7 @@
 import { GALLERY_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS, getHashValue } from '@/util/fs-utils';
 import ImageManipulation from '@/util/image-manipulation';
 import fs from 'fs';
+import { revalidatePath } from 'next/cache';
 import path from 'path';
 import sharp from 'sharp';
 
@@ -177,4 +178,8 @@ function encodeObjectToQueryString(obj: any) {
   }
 
   return parts.join('&');
+}
+
+export default async function revalidatePage(path: string) {
+  revalidatePath(path, 'page');
 }
