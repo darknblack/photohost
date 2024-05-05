@@ -1,6 +1,12 @@
 'use server';
 
-import { GALLERY_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS, getHashValue } from '@/util/fs-utils';
+import {
+  GALLERY_ROOT_PATH,
+  STARRED_JSON_PATH,
+  THUMBS_ROOT_PATH,
+  VALID_EXTENSIONS,
+  getHashValue,
+} from '@/util/fs-utils';
 import ImageManipulation from '@/util/image-manipulation';
 import fs from 'fs';
 import { revalidatePath } from 'next/cache';

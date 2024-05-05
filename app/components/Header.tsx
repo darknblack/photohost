@@ -269,7 +269,12 @@ function Header(props: Props) {
               >
                 Delete
               </Button>
-              <Button color="gray" onClick={() => {}}>
+              <Button
+                color="gray"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                }}
+              >
                 No, cancel
               </Button>
             </div>

@@ -1,7 +1,9 @@
 import path from 'path';
 import fs from 'fs';
 import { blake3 } from 'hash-wasm';
+import { StarHelper } from '@/app/server/StarHelper';
 
+export const STARRED_JSON_PATH = path.join('gallery', 'starred-list.json');
 export const GALLERY_ROOT_PATH = path.join('gallery');
 export const THUMBS_ROOT_PATH = path.join('thumbs');
 export const VALID_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
@@ -26,6 +28,7 @@ function fetchImageAndSort(folder: string, sortedImages: Image[]) {
       path: filePath,
       thumb: thumbPath,
       created: stat.birthtimeMs,
+      isStar: StarHelper.isStarred(folder, file),
     };
 
     // Insert the image into its sorted position
