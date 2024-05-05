@@ -26,7 +26,7 @@ export async function getImages(props: Props) {
   if (folder && !fs.existsSync(pathFolder)) return undefined;
 
   fs.mkdirSync(pathFolder, { recursive: true });
-  const imagesInRootFolder = fs
+  const imagesInFolder = fs
     .readdirSync(pathFolder)
     .filter(file => file.match(/\.(jpe?g|png|gif)$/i))
     .sort((a, b) => {
@@ -37,8 +37,8 @@ export async function getImages(props: Props) {
 
   const images = [];
 
-  for (let i = 0; i < imagesInRootFolder.length; i++) {
-    const imagePath = path.join(pathFolder, imagesInRootFolder[i]);
+  for (let i = 0; i < imagesInFolder.length; i++) {
+    const imagePath = path.join(pathFolder, imagesInFolder[i]);
     const stat = fs.statSync(imagePath);
 
     const filename = path.basename(imagePath);
