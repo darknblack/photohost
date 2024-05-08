@@ -6,6 +6,8 @@ import { StarIcon as StarredIcon } from '@heroicons/react/16/solid';
 import { ArrowTopRightOnSquareIcon, ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 import { Checkbox } from 'flowbite-react';
 import { memo, useState } from 'react';
+import { toggleStar } from '../actions';
+import { useRouter } from 'next/navigation';
 interface Props {
   image: Image;
   state: {
@@ -17,7 +19,8 @@ interface Props {
 
 function Thumb(props: Props) {
   const { image, state, selectImage, isSelected } = props;
-  const [isStarred, setIsStarred] = useState(false);
+  const isStarred = image.isStar;
+  const router = useRouter();
 
   return (
     <div className="relative group/thumb">
@@ -105,7 +108,12 @@ function Thumb(props: Props) {
             '!block': isStarred,
           })}
         >
-          <button onClick={() => setIsStarred(!isStarred)}>
+          <button
+            onClick={() => {
+              toggleStar(image.folder, image.filename, !isStarred);
+              router.refresh();
+            }}
+          >
             {isStarred ? (
               <div className="bg-yellow-300 rounded-full p-0.5">
                 <StarredIcon className="w-4 h-4 text-yellow-600" />

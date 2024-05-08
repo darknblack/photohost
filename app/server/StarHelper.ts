@@ -1,4 +1,4 @@
-import { STARRED_JSON_PATH } from '@/util/fs-utils';
+import { GALLERY_ROOT_PATH, STARRED_JSON_PATH } from '@/util/fs-utils';
 import fs from 'fs';
 import fsp from 'fs/promises';
 
@@ -9,9 +9,8 @@ export const StarHelper = {
   isInit: false,
   init() {
     if (!fs.existsSync(STARRED_JSON_PATH)) {
-      fs.mkdirSync(STARRED_JSON_PATH);
-      fs.writeFileSync(STARRED_JSON_PATH, JSON.stringify({}));
-      this.starred = {};
+      fs.mkdirSync(GALLERY_ROOT_PATH, { recursive: true });
+      fs.writeFileSync(STARRED_JSON_PATH, JSON.stringify(this.starred));
       this.isInit = true;
     } else {
       const rawData = fs.readFileSync(STARRED_JSON_PATH, 'base64');
@@ -21,14 +20,14 @@ export const StarHelper = {
     }
   },
   isStarred(folder: string, filename: string) {
-    const key = folder ? `${folder}-filename` : filename;
+    const key = folder ? `${folder}-${filename}` : filename;
 
     if (!this.isInit) this.init();
     return this.starred[key];
   },
 
   set(folder: string, filename: string, toStar: boolean) {
-    const key = folder ? `${folder}-filename` : filename;
+    const key = folder ? `${folder}-${filename}` : filename;
     if (!this.isInit) this.init();
 
     if (toStar) {
@@ -37,6 +36,6 @@ export const StarHelper = {
       delete this.starred[key];
     }
 
-    fsp.writeFile(STARRED_JSON_PATH, JSON.stringify(this.starred), 'base64');
+    fsp.writeFile(STARRED_JSON_PATH, JSON.stringify(this.starred));
   },
 };

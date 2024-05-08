@@ -1,17 +1,11 @@
 'use server';
-
-import {
-  GALLERY_ROOT_PATH,
-  STARRED_JSON_PATH,
-  THUMBS_ROOT_PATH,
-  VALID_EXTENSIONS,
-  getHashValue,
-} from '@/util/fs-utils';
+import { GALLERY_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS, getHashValue } from '@/util/fs-utils';
 import ImageManipulation from '@/util/image-manipulation';
 import fs from 'fs';
 import { revalidatePath } from 'next/cache';
 import path from 'path';
 import sharp from 'sharp';
+import { StarHelper } from './server/StarHelper';
 
 interface Props {
   folder?: string;
@@ -19,7 +13,7 @@ interface Props {
   pageSize?: number;
 }
 
-export async function getImages(props: Props) {
+export async function getImages(props: Props): Promise<ExtendedImage[] | undefined> {
   const { folder = '', page = 1, pageSize = 50 } = props;
 
   const pathFolder = folder ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
@@ -57,6 +51,9 @@ export async function getImages(props: Props) {
       path: `/api/file?${encodeObjectToQueryString(searchParamsObject)}`,
       thumb: `/api/file?${encodeObjectToQueryString({ ...searchParamsObject, thumb: '1' })}`,
       created: stat.birthtimeMs,
+      filename: filename,
+      isStar: StarHelper.isStarred(folder, filename),
+      folder: folder ?? '',
     };
 
     images.push(image);
@@ -84,6 +81,10 @@ export async function getAllFolders(): Promise<
     });
 
   return folders;
+}
+
+export async function toggleStar(folder: string, filename: string, toStar: boolean) {
+  return StarHelper.set(folder, filename, toStar);
 }
 
 export async function uploadImageOnServer(folder: string, formData: FormData) {

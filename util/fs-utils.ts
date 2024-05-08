@@ -11,9 +11,9 @@ export const VALID_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 function fetchImageAndSort(folder: string, sortedImages: Image[]) {
   const imagesInRootFolder = fs.readdirSync(folder).filter(file => file.match(/\.(jpe?g|png|gif)$/i));
 
-  imagesInRootFolder.forEach(file => {
-    let filePath = path.join(GALLERY_ROOT_PATH, file);
-    let thumbPath = path.join(THUMBS_ROOT_PATH, file);
+  imagesInRootFolder.forEach(filename => {
+    let filePath = path.join(GALLERY_ROOT_PATH, filename);
+    let thumbPath = path.join(THUMBS_ROOT_PATH, filename);
 
     if (!fs.existsSync(thumbPath)) {
       thumbPath = `/api/file?image=${thumbPath.replace(`${THUMBS_ROOT_PATH}\\`, '')}`;
@@ -28,7 +28,9 @@ function fetchImageAndSort(folder: string, sortedImages: Image[]) {
       path: filePath,
       thumb: thumbPath,
       created: stat.birthtimeMs,
-      isStar: StarHelper.isStarred(folder, file),
+      isStar: StarHelper.isStarred(folder, filename),
+      folder: folder,
+      filename: filename,
     };
 
     // Insert the image into its sorted position
