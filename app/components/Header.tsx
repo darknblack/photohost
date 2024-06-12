@@ -60,20 +60,21 @@ function Header(props: Props) {
 
   const rElDestinationFolder = useRef<any>();
 
-  const fSelectedImagesId = selectedImagesId
+  const fSelectedImagesId: [string, string][] = selectedImagesId
     .filter(item => item)
     .map(item => {
       const [, queryString] = item.split('?');
 
       // Extract the filename from the query string
       const params = new URLSearchParams(queryString);
-      const filename = params.get('image');
-      return filename as string;
+      const filename = params.get('image') as string;
+      const folder = params.get('folder') as string;
+      return [folder, filename];
     });
 
   const deleteFilesFromServerHandler = useEvent(async () => {
     try {
-      await deleteFilesFromServer(activeFolder, fSelectedImagesId);
+      await deleteFilesFromServer(fSelectedImagesId);
       router.refresh();
     } catch (e) {}
   });
@@ -312,7 +313,7 @@ function Header(props: Props) {
                   const value = rElDestinationFolder.current?.value;
                   if (!value) return;
 
-                  await moveFilesFromServer(activeFolder, value, fSelectedImagesId);
+                  await moveFilesFromServer(value, fSelectedImagesId);
                   router.refresh();
                 }}
               >

@@ -158,9 +158,10 @@ export async function addFolderToServer(folder: string) {
   fs.mkdirSync(path.join(THUMBS_ROOT_PATH), { recursive: true });
 }
 
-export async function deleteFilesFromServer(folder: string, arrOfFilenamesWithoutParam: string[]) {
+// arrOfFilenamesWithoutParam = [folder, filename][]
+export async function deleteFilesFromServer(arrOfFilenamesWithoutParam: [string, string][]) {
   for (let i = 0; arrOfFilenamesWithoutParam.length > i; i++) {
-    const filenameWithoutParam = arrOfFilenamesWithoutParam[i];
+    const [folder, filenameWithoutParam] = arrOfFilenamesWithoutParam[i];
     const filename = await FilenameHandler.getFileFromFolder(folder, filenameWithoutParam);
     if (filename) {
       const baseFolder = folder !== '' ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
@@ -186,8 +187,8 @@ export async function deleteFoldersFromServer(folders: string[]) {
   }
 }
 
-export async function moveFilesFromServer(cFolder: string, nFolder: string, arrOfFilenamesWithoutParam: string[]) {
-  const baseCurrentPath = cFolder !== '' ? path.join(GALLERY_ROOT_PATH, cFolder) : GALLERY_ROOT_PATH;
+// arrOfFilenamesWithoutParam = [folder, filename][]
+export async function moveFilesFromServer(nFolder: string, arrOfFilenamesWithoutParam: [string, string][]) {
   const baseNewPath = nFolder !== '' ? path.join(GALLERY_ROOT_PATH, nFolder) : GALLERY_ROOT_PATH;
 
   if (!fs.existsSync(baseNewPath)) {
@@ -195,7 +196,8 @@ export async function moveFilesFromServer(cFolder: string, nFolder: string, arrO
   }
 
   for (let i = 0; arrOfFilenamesWithoutParam.length > i; i++) {
-    const filenameWithoutParam = arrOfFilenamesWithoutParam[i];
+    const [cFolder, filenameWithoutParam] = arrOfFilenamesWithoutParam[i];
+    const baseCurrentPath = cFolder !== '' ? path.join(GALLERY_ROOT_PATH, cFolder) : GALLERY_ROOT_PATH;
     const filename = await FilenameHandler.getFileFromFolder(cFolder, filenameWithoutParam);
     if (filename) {
       const currentFile = path.join(baseCurrentPath, filename);
