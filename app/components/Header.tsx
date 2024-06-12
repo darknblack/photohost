@@ -36,6 +36,7 @@ interface Props {
   isAllSelected: boolean;
   images: Image[];
   folders: Folder[];
+  isStarredOnly: boolean;
 }
 
 function Header(props: Props) {
