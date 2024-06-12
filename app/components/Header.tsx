@@ -302,7 +302,7 @@ function Header(props: Props) {
               {<option value="">Select a folder</option>}
               {(activeFolder || isStarredOnly) && <option value={'/'}>/ (Root Directory)</option>}
               {folders.map(folder => (
-                <option key={folder.name} value={folder.name} disabled={folder.name === activeFolder}>
+                <option key={folder.name} value={folder.name} disabled={folder.name === activeFolder && !isStarredOnly}>
                   {folder.name}
                 </option>
               ))}

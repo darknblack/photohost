@@ -38,8 +38,13 @@ function Sidebar(props: Props) {
                     })}
                   />
                   <div>
-                    <Link className="text-sm text-neutral-300" href={`?folder=${encodeURIComponent(folder.name)}`}>
-                      {folder.name} <span className={cx('text-xs text-neutral-500')}>({folder.count})</span>
+                    <Link
+                      className={cx('text-sm text-neutral-500', {
+                        '!text-neutral-300': folder.name === activeFolder,
+                      })}
+                      href={`?folder=${encodeURIComponent(folder.name)}`}
+                    >
+                      {folder.name} <span className={cx('text-xs text-neutral-600')}>({folder.count})</span>
                     </Link>
                   </div>
                 </div>
