@@ -299,8 +299,8 @@ function Header(props: Props) {
               Select the destination folder
             </h3>
             <Select ref={rElDestinationFolder}>
-              {activeFolder !== '' && <option value="">Select a folder</option>}
-              {activeFolder && <option value={'/'}>/ (Root Directory)</option>}
+              {<option value="">Select a folder</option>}
+              {(activeFolder || isStarredOnly) && <option value={'/'}>/ (Root Directory)</option>}
               {folders.map(folder => (
                 <option key={folder.name} value={folder.name} disabled={folder.name === activeFolder}>
                   {folder.name}

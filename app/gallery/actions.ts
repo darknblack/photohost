@@ -19,6 +19,20 @@ export async function getStarredImages(props: Props) {
 
   const images: ExtendedImage[] = [];
 
+  const imagesInFolder = fs
+    .readdirSync(GALLERY_ROOT_PATH)
+    .filter(fileName => {
+      const isStarred = FilenameHandler.paramCheck(fileName, 's');
+      return fileName.match(/\.(jpe?g|png|gif)$/i) && isStarred;
+    })
+    .sort((a, b) => {
+      const [aMs] = a.split('-');
+      const [bMs] = b.split('-');
+      return Number(bMs) - Number(aMs);
+    });
+
+  loopImages(GALLERY_ROOT_PATH, imagesInFolder, '', images);
+
   for (let i = 0; i < allFolders.length; i++) {
     const folder = allFolders[i];
     const pathFolder = path.join(GALLERY_ROOT_PATH, folder.name);
@@ -35,13 +49,13 @@ export async function getStarredImages(props: Props) {
         return Number(bMs) - Number(aMs);
       });
 
-    loopImages(imagesInFolder, images, pathFolder, folder.name);
+    loopImages(pathFolder, imagesInFolder, folder.name, images);
   }
 
   return images.slice((page - 1) * pageSize, page * pageSize);
 }
 
-function loopImages(imagesInFolder: string[], images: any[], pathFolder: string, folder: string) {
+function loopImages(pathFolder: string, imagesInFolder: string[], folder: string, images: any[]) {
   for (let i = 0; i < imagesInFolder.length; i++) {
     const imagePath = path.join(pathFolder, imagesInFolder[i]);
     const stat = fs.statSync(imagePath);
@@ -90,7 +104,7 @@ export async function getImages(props: Props): Promise<ExtendedImage[] | undefin
     });
 
   const images: ExtendedImage[] = [];
-  loopImages(imagesInFolder, images, pathFolder, folder);
+  loopImages(pathFolder, imagesInFolder, folder, images);
   return images.slice((page - 1) * pageSize, page * pageSize);
 }
 
