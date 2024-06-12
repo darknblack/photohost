@@ -20,6 +20,8 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
     ? await getStarredImages({ page: Number(activePage), pageSize: Number(activePageSize) })
     : await getImages({ folder: activeFolder, page: Number(activePage), pageSize: Number(activePageSize) });
 
+  console.log('images', images);
+
   if (images === undefined) {
     return <div>Something went wrong</div>;
   }

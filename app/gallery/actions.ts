@@ -189,7 +189,7 @@ export async function deleteFoldersFromServer(folders: string[]) {
 
 // arrOfFilenamesWithoutParam = [folder, filename][]
 export async function moveFilesFromServer(nFolder: string, arrOfFilenamesWithoutParam: [string, string][]) {
-  const baseNewPath = nFolder !== '' ? path.join(GALLERY_ROOT_PATH, nFolder) : GALLERY_ROOT_PATH;
+  const baseNewPath = nFolder ? path.join(GALLERY_ROOT_PATH, nFolder) : GALLERY_ROOT_PATH;
 
   if (!fs.existsSync(baseNewPath)) {
     fs.mkdirSync(baseNewPath, { recursive: true });

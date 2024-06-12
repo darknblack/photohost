@@ -68,7 +68,7 @@ function Header(props: Props) {
       // Extract the filename from the query string
       const params = new URLSearchParams(queryString);
       const filename = params.get('image') as string;
-      const folder = params.get('folder') as string;
+      const folder = (params.get('folder') as string) || '';
       return [folder, filename];
     });
 
@@ -300,6 +300,7 @@ function Header(props: Props) {
             </h3>
             <Select ref={rElDestinationFolder}>
               {activeFolder !== '' && <option value="">Select a folder</option>}
+              {activeFolder && <option value={'/'}>/ (Root Directory)</option>}
               {folders.map(folder => (
                 <option key={folder.name} value={folder.name} disabled={folder.name === activeFolder}>
                   {folder.name}

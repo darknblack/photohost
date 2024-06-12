@@ -44,7 +44,7 @@ const FilenameHandler = {
     return [`${date}-${hash}`, ext.replace('.', '')];
   },
   async getFileFromFolder(folder: string, filename: string): Promise<string | undefined> {
-    const basePath = path.join(GALLERY_ROOT_PATH, folder);
+    const basePath = folder ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
     const files = await fs.readdir(basePath);
     const file = files.find(
       file =>
