@@ -17,9 +17,9 @@ import cx from 'clsx';
 import { Breadcrumb } from 'flowbite-react';
 import Link from 'next/link';
 import { memo, useRef, useState } from 'react';
-import { deleteFilesFromServer, moveFilesFromServer, renameFolder } from '../actions';
+import { deleteFilesFromServer, moveFilesFromServer, renameFolder } from '@/app/gallery/actions';
 import { useRouter } from 'next/navigation';
-import useEvent from '../hooks/useEvent';
+import useEvent from '@/app/hooks/useEvent';
 
 interface State {
   isListView: boolean;
@@ -49,6 +49,7 @@ function Header(props: Props) {
     isAllSelected,
     images,
     folders,
+    isStarredOnly,
   } = props;
   const router = useRouter();
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
@@ -81,12 +82,18 @@ function Header(props: Props) {
       <div className="flex gap-2">
         <Breadcrumb className="bg-neutral-900 px-3 rounded min-w-[24rem] py-2">
           <Breadcrumb.Item>
-            <Link href="/" className="text-neutral-200">
-              Gallery
-            </Link>
+            {isStarredOnly ? (
+              <Link href={{ pathname: '/gallery', query: { starred: '1' } }} className="text-neutral-200">
+                Starred
+              </Link>
+            ) : (
+              <Link href={{ pathname: '/gallery', query: { folder: '' } }} className="text-neutral-200">
+                Gallery
+              </Link>
+            )}
           </Breadcrumb.Item>
           <Breadcrumb.Item>
-            <Link href={{ pathname: '/', query: { folder: activeFolder } }} className="text-neutral-200">
+            <Link href={{ pathname: '/gallery', query: { folder: activeFolder } }} className="text-neutral-200">
               {activeFolder}
             </Link>
 

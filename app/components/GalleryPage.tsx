@@ -4,8 +4,8 @@ import { FolderIcon } from '@heroicons/react/24/outline';
 import { Button, Modal, TextInput } from 'flowbite-react';
 import { useState } from 'react';
 import cx from 'clsx';
-import useEvent from '../hooks/useEvent';
-import { addFolderToServer, uploadImageOnServer } from '../actions';
+import useEvent from '@/app/hooks/useEvent';
+import { addFolderToServer, uploadImageOnServer } from '@/app/gallery/actions';
 import { useRouter } from 'next/navigation';
 import Thumb from './Thumb';
 import Sidebar from './Sidebar';
@@ -15,10 +15,11 @@ interface Props {
   images: Image[];
   folders: Folder[];
   activeFolder: string;
+  isStarredOnly: boolean;
 }
 
-const Homepage = (props: Props) => {
-  const { images, folders, activeFolder } = props;
+const GalleryPage = (props: Props) => {
+  const { images, folders, activeFolder, isStarredOnly } = props;
   const [selectedImagesId, setSelectedImagesId] = useState<string[]>([]);
   const router = useRouter();
 
@@ -96,6 +97,7 @@ const Homepage = (props: Props) => {
           isAllSelected={isAllSelected}
           images={state.images}
           folders={folders}
+          isStarredOnly={isStarredOnly}
         />
         <div className="">
           <div
@@ -105,11 +107,12 @@ const Homepage = (props: Props) => {
             })}
           >
             {activeFolder === '' &&
+              !isStarredOnly &&
               folders.map(folder => (
                 <Link
                   key={folder.name}
-                  href={{ pathname: '/', query: { folder: folder.name } }}
-                  as={{ pathname: '/', query: { folder: folder.name } }}
+                  href={{ pathname: '/gallery', query: { folder: folder.name } }}
+                  as={{ pathname: '/gallery', query: { folder: folder.name } }}
                   className="flex items-center justify-center flex-col group/folder"
                 >
                   <FolderIcon className="text-neutral-400 w-20 group-hover/folder:text-neutral-300" />
@@ -175,7 +178,7 @@ const Homepage = (props: Props) => {
   );
 };
 
-export default Homepage;
+export default GalleryPage;
 
 {
   /* <div

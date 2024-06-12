@@ -5,12 +5,72 @@ import fs from 'fs';
 import { revalidatePath } from 'next/cache';
 import path from 'path';
 import sharp from 'sharp';
-import { StarHelper } from './server/StarHelper';
+import FilenameHandler from '@/app/server/FilenameHandler';
 
 interface Props {
   folder?: string;
   page?: number;
   pageSize?: number;
+}
+
+export async function getStarredImages(props: Props) {
+  const { page = 1, pageSize = 50 } = props;
+  const allFolders = await getAllFolders();
+
+  const images: ExtendedImage[] = [];
+
+  for (let i = 0; i < allFolders.length; i++) {
+    const folder = allFolders[i];
+    const pathFolder = path.join(GALLERY_ROOT_PATH, folder.name);
+
+    const imagesInFolder = fs
+      .readdirSync(pathFolder)
+      .filter(fileName => {
+        const isStarred = FilenameHandler.paramCheck(fileName, 's');
+        return fileName.match(/\.(jpe?g|png|gif)$/i) && isStarred;
+      })
+      .sort((a, b) => {
+        const [aMs] = a.split('-');
+        const [bMs] = b.split('-');
+        return Number(bMs) - Number(aMs);
+      });
+
+    loopImages(imagesInFolder, images, pathFolder, folder.name);
+  }
+
+  return images.slice((page - 1) * pageSize, page * pageSize);
+}
+
+function loopImages(imagesInFolder: string[], images: any[], pathFolder: string, folder: string) {
+  for (let i = 0; i < imagesInFolder.length; i++) {
+    const imagePath = path.join(pathFolder, imagesInFolder[i]);
+    const stat = fs.statSync(imagePath);
+
+    const filenameWithParam = path.basename(imagePath);
+    const isStar = FilenameHandler.paramCheck(filenameWithParam, 's');
+    const filenameWithoutParam = FilenameHandler.getFilenameWithoutParamAndExtension(filenameWithParam).join('.');
+
+    const searchParamsObject: {
+      image: string;
+      folder?: string;
+      thumb?: string;
+    } = {
+      image: filenameWithoutParam,
+    };
+
+    if (folder) searchParamsObject.folder = folder;
+
+    const image = {
+      path: `/api/file?${encodeObjectToQueryString(searchParamsObject)}`,
+      thumb: `/api/file?${encodeObjectToQueryString({ ...searchParamsObject, thumb: '1' })}`,
+      created: stat.birthtimeMs,
+      filename: filenameWithoutParam,
+      isStar: isStar,
+      folder: folder ?? '',
+    };
+
+    images.push(image);
+  }
 }
 
 export async function getImages(props: Props): Promise<ExtendedImage[] | undefined> {
@@ -29,36 +89,8 @@ export async function getImages(props: Props): Promise<ExtendedImage[] | undefin
       return Number(bMs) - Number(aMs);
     });
 
-  const images = [];
-
-  for (let i = 0; i < imagesInFolder.length; i++) {
-    const imagePath = path.join(pathFolder, imagesInFolder[i]);
-    const stat = fs.statSync(imagePath);
-
-    const filename = path.basename(imagePath);
-
-    const searchParamsObject: {
-      image: string;
-      folder?: string;
-      thumb?: string;
-    } = {
-      image: filename,
-    };
-
-    if (folder) searchParamsObject.folder = folder;
-
-    const image = {
-      path: `/api/file?${encodeObjectToQueryString(searchParamsObject)}`,
-      thumb: `/api/file?${encodeObjectToQueryString({ ...searchParamsObject, thumb: '1' })}`,
-      created: stat.birthtimeMs,
-      filename: filename,
-      isStar: StarHelper.isStarred(folder, filename),
-      folder: folder ?? '',
-    };
-
-    images.push(image);
-  }
-
+  const images: ExtendedImage[] = [];
+  loopImages(imagesInFolder, images, pathFolder, folder);
   return images.slice((page - 1) * pageSize, page * pageSize);
 }
 
@@ -83,8 +115,13 @@ export async function getAllFolders(): Promise<
   return folders;
 }
 
-export async function toggleStar(folder: string, filename: string, toStar: boolean) {
-  return StarHelper.set(folder, filename, toStar);
+export async function toggleStar(folder: string, filenameWithoutParam: string, toStar: boolean) {
+  const filename = await FilenameHandler.getFileFromFolder(folder, filenameWithoutParam);
+  if (filename) {
+    const newFileName = toStar ? FilenameHandler.setParam(filename, 's') : FilenameHandler.removeParam(filename, 's');
+    const basePath = path.join(GALLERY_ROOT_PATH, folder);
+    fs.renameSync(path.join(basePath, filename), path.join(basePath, newFileName));
+  }
 }
 
 export async function uploadImageOnServer(folder: string, formData: FormData) {
@@ -121,18 +158,19 @@ export async function addFolderToServer(folder: string) {
   fs.mkdirSync(path.join(THUMBS_ROOT_PATH), { recursive: true });
 }
 
-export async function deleteFilesFromServer(folder: string, arr: string[]) {
-  for (let i = 0; arr.length > i; i++) {
-    const filename = arr[i];
+export async function deleteFilesFromServer(folder: string, arrOfFilenamesWithoutParam: string[]) {
+  for (let i = 0; arrOfFilenamesWithoutParam.length > i; i++) {
+    const filenameWithoutParam = arrOfFilenamesWithoutParam[i];
+    const filename = await FilenameHandler.getFileFromFolder(folder, filenameWithoutParam);
+    if (filename) {
+      const baseFolder = folder !== '' ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
+      const fullFilePath = path.join(baseFolder, filename);
 
-    const baseFolder = folder !== '' ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
-    const fullFilePath = path.join(baseFolder, filename);
-
-    // thumb folder + filename
-    const fullThumbPath = path.join(THUMBS_ROOT_PATH, filename);
-
-    if (fs.existsSync(fullFilePath)) fs.unlinkSync(fullFilePath);
-    if (fs.existsSync(fullThumbPath)) fs.unlinkSync(fullThumbPath);
+      // thumb folder + filename
+      const fullThumbPath = path.join(THUMBS_ROOT_PATH, filename);
+      if (fs.existsSync(fullFilePath)) fs.unlinkSync(fullFilePath);
+      if (fs.existsSync(fullThumbPath)) fs.unlinkSync(fullThumbPath);
+    }
   }
 }
 
@@ -148,7 +186,7 @@ export async function deleteFoldersFromServer(folders: string[]) {
   }
 }
 
-export async function moveFilesFromServer(cFolder: string, nFolder: string, arr: string[]) {
+export async function moveFilesFromServer(cFolder: string, nFolder: string, arrOfFilenamesWithoutParam: string[]) {
   const baseCurrentPath = cFolder !== '' ? path.join(GALLERY_ROOT_PATH, cFolder) : GALLERY_ROOT_PATH;
   const baseNewPath = nFolder !== '' ? path.join(GALLERY_ROOT_PATH, nFolder) : GALLERY_ROOT_PATH;
 
@@ -156,13 +194,16 @@ export async function moveFilesFromServer(cFolder: string, nFolder: string, arr:
     fs.mkdirSync(baseNewPath, { recursive: true });
   }
 
-  for (let i = 0; arr.length > i; i++) {
-    const filename = arr[i];
-    const currentFile = path.join(baseCurrentPath, filename);
-    const newFile = path.join(baseNewPath, filename);
+  for (let i = 0; arrOfFilenamesWithoutParam.length > i; i++) {
+    const filenameWithoutParam = arrOfFilenamesWithoutParam[i];
+    const filename = await FilenameHandler.getFileFromFolder(cFolder, filenameWithoutParam);
+    if (filename) {
+      const currentFile = path.join(baseCurrentPath, filename);
+      const newFile = path.join(baseNewPath, filename);
 
-    if (fs.existsSync(currentFile)) {
-      fs.renameSync(currentFile, newFile);
+      if (fs.existsSync(currentFile)) {
+        fs.renameSync(currentFile, newFile);
+      }
     }
   }
 }

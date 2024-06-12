@@ -1,92 +1,11 @@
 import path from 'path';
-import fs from 'fs';
 import { blake3 } from 'hash-wasm';
-import { StarHelper } from '@/app/server/StarHelper';
 
 export const STARRED_JSON_PATH = path.join('gallery', 'starred-list.json');
 export const GALLERY_ROOT_PATH = path.join('gallery');
 export const THUMBS_ROOT_PATH = path.join('thumbs');
 export const VALID_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
-function fetchImageAndSort(folder: string, sortedImages: Image[]) {
-  const imagesInRootFolder = fs.readdirSync(folder).filter(file => file.match(/\.(jpe?g|png|gif)$/i));
-
-  imagesInRootFolder.forEach(filename => {
-    let filePath = path.join(GALLERY_ROOT_PATH, filename);
-    let thumbPath = path.join(THUMBS_ROOT_PATH, filename);
-
-    if (!fs.existsSync(thumbPath)) {
-      thumbPath = `/api/file?image=${thumbPath.replace(`${THUMBS_ROOT_PATH}\\`, '')}`;
-    } else {
-      thumbPath = `/api/thumb?image=${thumbPath.replace(`${THUMBS_ROOT_PATH}\\`, '')}`;
-    }
-
-    const stat = fs.statSync(filePath);
-    filePath = `/api/file?image=${filePath.replace(`${GALLERY_ROOT_PATH}\\`, '')}`;
-
-    const image = {
-      path: filePath,
-      thumb: thumbPath,
-      created: stat.birthtimeMs,
-      isStar: StarHelper.isStarred(folder, filename),
-      folder: folder,
-      filename: filename,
-    };
-
-    // Insert the image into its sorted position
-    let insertIndex = sortedImages.findIndex(item => item.created < image.created);
-    if (insertIndex === -1) insertIndex = sortedImages.length;
-    sortedImages.splice(insertIndex, 0, image);
-  });
-}
-
-export function fetchImageMetadata() {
-  const sortedImages: Image[] = [];
-
-  fs.mkdirSync(GALLERY_ROOT_PATH, { recursive: true });
-  fs.mkdirSync(THUMBS_ROOT_PATH, { recursive: true });
-
-  // Get the list of subfolders within the "images/" directory
-  const folders = fs
-    .readdirSync(GALLERY_ROOT_PATH, { withFileTypes: true })
-    .filter(item => item.isDirectory())
-    .map(item => item.name);
-
-  // Fetch images on the root level
-  fetchImageAndSort(GALLERY_ROOT_PATH, sortedImages);
-
-  // Fetch images on each subfolder
-  folders.forEach(folder => {
-    fetchImageAndSort(path.join(GALLERY_ROOT_PATH, folder), sortedImages);
-  });
-
-  return sortedImages;
-}
-
-export function getAllImages(page = 1, pageSize = 50) {
-  const imageCache = fetchImageMetadata();
-
-  // Sort and paginate cached images
-  const startIndex = (page - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedImages = imageCache && imageCache.slice(startIndex, endIndex);
-
-  return paginatedImages || [];
-}
-
-export function getImagesByFolder(subFolder: string, page = 1, pageSize = 50): Image[] {
-  const sortedImages: Image[] = [];
-  const folder = path.join(GALLERY_ROOT_PATH, subFolder);
-  fetchImageAndSort(folder, sortedImages);
-
-  // Sort and paginate cached images
-  const startIndex = (page - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedImages = sortedImages.slice(startIndex, endIndex);
-
-  return paginatedImages || [];
-}
-
 export function getHashValue(buffer: Buffer) {
-  return blake3(buffer, 128);
+  return blake3(buffer, 64);
 }

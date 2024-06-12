@@ -15,18 +15,14 @@ function Sidebar(props: Props) {
 
   return (
     <div id="sidebar" className="min-h-screen w-64 bg-neutral-950 px-5">
-      <Link
-        href={{ pathname: '/', query: { folder: '' } }}
-        as={{ pathname: '/', query: { folder: '' } }}
-        className="block py-6 font-[600] text-zinc-200 text-lg"
-      >
+      <Link href={{ pathname: '/' }} as={{ pathname: '/' }} className="block py-6 font-[600] text-zinc-200 text-lg">
         Photohost.io
       </Link>
       <div className="flex flex-col gap-3 justify-center">
         <div className="">
           <Link
-            href={{ pathname: '/', query: { folder: '' } }}
-            as={{ pathname: '/', query: { folder: '' } }}
+            href={{ pathname: '/gallery', query: { folder: '' } }}
+            as={{ pathname: '/gallery', query: { folder: '' } }}
             className="flex gap-2"
           >
             <FolderIcon className="text-neutral-300 w-5" />
@@ -53,8 +49,8 @@ function Sidebar(props: Props) {
         </div>
         <div className="flex gap-2">
           <Link
-            href={{ pathname: '/', query: { folder: '', starred: '1' } }}
-            as={{ pathname: '/', query: { folder: '', starred: '1' } }}
+            href={{ pathname: '/gallery', query: { starred: '1' } }}
+            as={{ pathname: '/gallery', query: { starred: '1' } }}
             className="flex gap-2"
           >
             <StarIcon className="text-neutral-300 w-5" />

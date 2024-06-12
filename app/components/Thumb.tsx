@@ -5,8 +5,8 @@ import { StarIcon } from '@heroicons/react/24/outline';
 import { StarIcon as StarredIcon } from '@heroicons/react/16/solid';
 import { ArrowTopRightOnSquareIcon, ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 import { Checkbox } from 'flowbite-react';
-import { memo, useState } from 'react';
-import { toggleStar } from '../actions';
+import { memo } from 'react';
+import { toggleStar } from '@/app/gallery/actions';
 import { useRouter } from 'next/navigation';
 interface Props {
   image: Image;
