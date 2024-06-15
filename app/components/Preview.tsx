@@ -4,7 +4,8 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import cx from 'clsx';
 import React from 'react';
 import useEvent from '../hooks/useEvent';
-
+import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
+import download from '../server/ClientDownloader';
 interface Props {
   activeImageUrl: string;
   images: Image[];
@@ -16,6 +17,10 @@ function Preview(props: Props) {
 
   const onClose = useEvent(() => {
     selectPreviewImageUrl('');
+  });
+
+  const onClickDownload = useEvent(() => {
+    download(activeImageUrl);
   });
 
   const onWhiteSpaceClick = useEvent((event: React.MouseEvent) => {
@@ -39,16 +44,29 @@ function Preview(props: Props) {
           tabIndex={0}
           onClick={onWhiteSpaceClick}
         >
-          <div className="h-full relative">
-            <button
-              className={cx(
-                'absolute right-2 top-2 text-center h-8 w-8 flex justify-center items-center rounded-full text-neutral-300 button-w-action bg-neutral-800 bg-opacity-60 transition-all duration-75',
-                'hover:bg-opacity-100 hover:text-neutral-100'
-              )}
-              onClick={onClose}
-            >
-              <XMarkIcon className="w-5 h-5" />
-            </button>
+          <div className="h-full relative pointer-events-none">
+            <div className="absolute flex top-0 left-0 pt-2 px-2 justify-end w-full">
+              <div className="flex gap-1.5">
+                <button
+                  className={cx(
+                    'text-center h-8 w-8 flex justify-center items-center rounded-full text-neutral-300 button-w-action bg-neutral-800 bg-opacity-60 transition-all duration-75',
+                    'hover:bg-opacity-100 hover:text-neutral-100'
+                  )}
+                  onClick={onClickDownload}
+                >
+                  <ArrowDownTrayIcon className="w-5 h-5" />
+                </button>
+                <button
+                  className={cx(
+                    'text-center h-8 w-8 flex justify-center items-center rounded-full text-neutral-300 button-w-action bg-neutral-800 bg-opacity-60 transition-all duration-75',
+                    'hover:bg-opacity-100 hover:text-neutral-100'
+                  )}
+                  onClick={onClose}
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
             <img src={activeImageUrl} className="h-full cursor-default button-w-action" />
           </div>
         </div>

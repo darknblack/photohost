@@ -10,6 +10,7 @@ import { memo } from 'react';
 import { toggleStar } from '@/app/gallery/actions';
 import { useRouter } from 'next/navigation';
 import useEvent from '../hooks/useEvent';
+import download from '../server/ClientDownloader';
 interface Props {
   image: Image;
   state: {
@@ -28,6 +29,10 @@ function Thumb(props: Props) {
   const onClickStar = useEvent(() => {
     toggleStar(image.folder, image.filename, !isStarred);
     router.refresh();
+  });
+
+  const onClickDownload = useEvent(() => {
+    download(image.path);
   });
 
   return (
@@ -82,19 +87,17 @@ function Thumb(props: Props) {
           />
         </div>
         <div className="items-center justify-center w-full flex gap-1.5">
-          <Link
-            href={image.path}
+          <button
             className={cx(
               'group-hover/thumb:block hidden button-w-action',
               'p-2 rounded-full',
               'border-1 border-neutral-100 bg-neutral-500 bg-opacity-75 text-neutral-300 ',
               'hover:bg-opacity-100'
             )}
-            target="_blank"
-            prefetch={false}
+            onClick={onClickDownload}
           >
             <ArrowDownTrayIcon className="w-5" />
-          </Link>
+          </button>
         </div>
         <div
           className={cx('group-hover/thumb:block hidden', 'px-1', {
