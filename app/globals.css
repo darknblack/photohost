@@ -31,3 +31,11 @@ body {
     text-wrap: balance;
   }
 }
+
+.button-w-action {
+  pointer-events: auto !important;
+}
+
+.button-w-action * {
+  pointer-events: none;
+}

@@ -92,6 +92,14 @@ const GalleryPage = (props: Props) => {
     }));
   });
 
+  const onThumbParentClick = useEvent(
+    (path: string) => (event: React.MouseEvent<HTMLDivElement | HTMLAnchorElement | HTMLButtonElement>) => {
+      const target = event.target as HTMLImageElement | HTMLDivElement;
+      if (target.classList.contains('button-w-action')) return;
+      selectPreviewImageUrl(path);
+    }
+  );
+
   return (
     <>
       <div className="flex bg-neutral-900">
@@ -136,9 +144,7 @@ const GalleryPage = (props: Props) => {
                   state={state}
                   selectImage={() => selectImage(image.path)}
                   isSelected={selectedImagesId.includes(image.path)}
-                  onClick={() => {
-                    selectPreviewImageUrl(image.path);
-                  }}
+                  onParentclick={onThumbParentClick(image.path)}
                 />
               ))}
             </div>
@@ -198,18 +204,3 @@ const GalleryPage = (props: Props) => {
 };
 
 export default GalleryPage;
-
-{
-  /* <div
-                  style={{
-                    background: `url(${image.path})`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    backgroundSize: 'cover',
-                  }}
-                  className={cx('flex items-center justify-center rounded', {
-                    'h-40': !state.isListView,
-                    'h-14 w-14': state.isListView,
-                  })}
-                ></div> */
-}
