@@ -1,4 +1,5 @@
 'use client';
+
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import cx from 'clsx';
 import React from 'react';
@@ -13,8 +14,6 @@ interface Props {
 function Preview(props: Props) {
   const { activeImageUrl, selectPreviewImageUrl, images } = props;
 
-  if (!activeImageUrl) return null;
-
   const onClose = useEvent(() => {
     selectPreviewImageUrl('');
   });
@@ -25,6 +24,8 @@ function Preview(props: Props) {
 
     onClose();
   });
+
+  if (!activeImageUrl) return null;
 
   return (
     <div
@@ -68,7 +69,8 @@ function ThumbsBottom(props: Props) {
   return images.map(item => {
     const isActive = activeImageUrl === item.path;
     return (
-      <div
+      <button
+        key={item.path}
         className={cx('h-full relative cursor-pointer button-w-action border border-transparent', {
           '!border-neutral-300': isActive,
           'bg-opacity-5': !isActive,
@@ -83,7 +85,7 @@ function ThumbsBottom(props: Props) {
             'bg-black bg-opacity-60': !isActive,
           })}
         ></div>
-      </div>
+      </button>
     );
   });
 }
