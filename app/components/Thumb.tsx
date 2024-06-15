@@ -1,4 +1,5 @@
 'use client';
+
 import Link from 'next/link';
 import cx from 'clsx';
 import { StarIcon } from '@heroicons/react/24/outline';
@@ -15,15 +16,16 @@ interface Props {
   };
   selectImage: () => void;
   isSelected: boolean;
+  onClick: () => void;
 }
 
 function Thumb(props: Props) {
-  const { image, state, selectImage, isSelected } = props;
+  const { image, state, selectImage, isSelected, onClick } = props;
   const isStarred = image.isStar;
   const router = useRouter();
 
   return (
-    <div className="relative group/thumb">
+    <div className="relative group/thumb select-none" onClick={onClick}>
       <Link
         key={image.path}
         href={image.path}

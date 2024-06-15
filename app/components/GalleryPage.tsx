@@ -11,6 +11,7 @@ import Thumb from './Thumb';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Link from 'next/link';
+import Preview from './Preview';
 interface Props {
   images: Image[];
   folders: Folder[];
@@ -28,6 +29,7 @@ const GalleryPage = (props: Props) => {
     openAddFolder: false,
     folderName: '',
     images: images,
+    activeImageUrl: '',
   });
 
   const changeState = useEvent((newState: Partial<typeof state>) => {
@@ -83,51 +85,64 @@ const GalleryPage = (props: Props) => {
 
   const isAllSelected = selectedImagesId.length === state.images.length;
 
+  const selectPreviewImageUrl = useEvent((imageUrl: string) => {
+    setState(prev => ({
+      ...prev,
+      activeImageUrl: imageUrl,
+    }));
+  });
+
   return (
-    <div className="flex bg-neutral-900">
-      <Sidebar folders={folders} activeFolder={activeFolder} />
-      <div id="main-content" className="flex-1 p-2">
-        <Header
-          state={state}
-          changeState={changeState}
-          activeFolder={activeFolder}
-          uploadImage={uploadImage}
-          selectedImagesId={selectedImagesId}
-          selectAllImages={selectAllImages}
-          isAllSelected={isAllSelected}
-          images={state.images}
-          folders={folders}
-          isStarredOnly={isStarredOnly}
-        />
-        <div className="">
-          <div
-            className={cx('grid px-4 py-5', {
-              'grid-cols-3 gap-4': state.isListView,
-              'grid-cols-8 gap-2': !state.isListView,
-            })}
-          >
-            {activeFolder === '' &&
-              !isStarredOnly &&
-              folders.map(folder => (
-                <Link
-                  key={folder.name}
-                  href={{ pathname: '/gallery', query: { folder: folder.name } }}
-                  as={{ pathname: '/gallery', query: { folder: folder.name } }}
-                  className="flex items-center justify-center flex-col group/folder"
-                >
-                  <FolderIcon className="text-neutral-400 w-20 group-hover/folder:text-neutral-300" />
-                  <h3 className="text-center text-neutral-300 group-hover/folder:text-neutral-200">{folder.name}</h3>
-                </Link>
+    <>
+      <div className="flex bg-neutral-900">
+        <Sidebar folders={folders} activeFolder={activeFolder} />
+        <div id="main-content" className="flex-1 p-2">
+          <Header
+            state={state}
+            changeState={changeState}
+            activeFolder={activeFolder}
+            uploadImage={uploadImage}
+            selectedImagesId={selectedImagesId}
+            selectAllImages={selectAllImages}
+            isAllSelected={isAllSelected}
+            images={state.images}
+            folders={folders}
+            isStarredOnly={isStarredOnly}
+          />
+          <div className="">
+            <div
+              className={cx('grid px-4 py-5', {
+                'grid-cols-3 gap-4': state.isListView,
+                'grid-cols-8 gap-2': !state.isListView,
+              })}
+            >
+              {activeFolder === '' &&
+                !isStarredOnly &&
+                folders.map(folder => (
+                  <Link
+                    key={folder.name}
+                    href={{ pathname: '/gallery', query: { folder: folder.name } }}
+                    as={{ pathname: '/gallery', query: { folder: folder.name } }}
+                    className="flex items-center justify-center flex-col group/folder"
+                  >
+                    <FolderIcon className="text-neutral-400 w-20 group-hover/folder:text-neutral-300" />
+                    <h3 className="text-center text-neutral-300 group-hover/folder:text-neutral-200">{folder.name}</h3>
+                  </Link>
+                ))}
+              {state.images.map(image => (
+                <Thumb
+                  key={image.path}
+                  image={image}
+                  state={state}
+                  selectImage={() => selectImage(image.path)}
+                  isSelected={selectedImagesId.includes(image.path)}
+                  onClick={() => {
+                    console.log('haha');
+                    selectPreviewImageUrl(image.path);
+                  }}
+                />
               ))}
-            {state.images.map(image => (
-              <Thumb
-                key={image.path}
-                image={image}
-                state={state}
-                selectImage={() => selectImage(image.path)}
-                isSelected={selectedImagesId.includes(image.path)}
-              />
-            ))}
+            </div>
           </div>
         </div>
       </div>
@@ -174,7 +189,8 @@ const GalleryPage = (props: Props) => {
           </div>
         </Modal.Body>
       </Modal>
-    </div>
+      <Preview activeImageUrl={state.activeImageUrl} selectPreviewImageUrl={selectPreviewImageUrl} />
+    </>
   );
 };
 
