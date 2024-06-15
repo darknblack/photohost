@@ -15,6 +15,19 @@ const config: Config = {
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
       colors: {},
+      keyframes: {
+        'backdrop-blur': {
+          '0%': {
+            'backdrop-filter': 'blur(0px)',
+          },
+          '100%': {
+            'backdrop-filter': 'blur(8px)',
+          },
+        },
+      },
+      animation: {
+        'backdrop-blur': 'backdrop-blur .2s ease',
+      },
     },
   },
   plugins: [flowbite.plugin()],

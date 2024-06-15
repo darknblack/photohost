@@ -1,5 +1,5 @@
 'use client';
-import { XCircleIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import cx from 'clsx';
 import React from 'react';
 import useEvent from '../hooks/useEvent';
@@ -29,33 +29,30 @@ function Preview(props: Props) {
   return (
     <div
       className={cx(
-        'flex flex-col fixed left-0 top-0 right-0 bottom-0 bg-black bg-opacity-10 backdrop-blur select-none'
+        'flex flex-col fixed left-0 top-0 right-0 bottom-0 bg-black bg-opacity-70 backdrop-blur animate-backdrop-blur select-none'
       )}
     >
-      <div className="h-full">
-        <div className="h-full flex flex-col items-center justify-center gap-2 p-3">
-          <div
-            className="h-[94%] w-full flex justify-center items-center cursor-pointer !pointer-events-auto"
-            tabIndex={0}
-            onClick={onWhiteSpaceClick}
-          >
-            <div className="h-full relative">
-              <button
-                className="absolute right-2 top-2 hover:bg-gray-600 hover:text-gray-300 bg-transparent text-center leading-10 h-10 w-10 rounded-full text-neutral-900 button-w-action"
-                onClick={onClose}
-              >
-                <XCircleIcon className="w-10 h-10" />
-              </button>
-              <img src={activeImageUrl} className="max-h-full cursor-default button-w-action" />
-            </div>
+      <div className="h-full flex flex-col gap-2 p-3">
+        <div
+          className="w-full flex-1 h-0 flex justify-center items-center cursor-pointer !pointer-events-auto"
+          tabIndex={0}
+          onClick={onWhiteSpaceClick}
+        >
+          <div className="h-full relative">
+            <button
+              className={cx(
+                'absolute right-2 top-2 text-center h-8 w-8 flex justify-center items-center rounded-full text-neutral-300 button-w-action bg-neutral-800 bg-opacity-60 transition-all duration-75',
+                'hover:bg-opacity-100 hover:text-neutral-100'
+              )}
+              onClick={onClose}
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+            <img src={activeImageUrl} className="h-full cursor-default button-w-action" />
           </div>
-          <div className="h-[6%] flex gap-2">
-            <ThumbsBottom
-              images={images}
-              activeImageUrl={activeImageUrl}
-              selectPreviewImageUrl={selectPreviewImageUrl}
-            />
-          </div>
+        </div>
+        <div className="h-[6%] flex justify-center gap-1">
+          <ThumbsBottom images={images} activeImageUrl={activeImageUrl} selectPreviewImageUrl={selectPreviewImageUrl} />
         </div>
       </div>
     </div>
@@ -71,14 +68,22 @@ function ThumbsBottom(props: Props) {
   return images.map(item => {
     const isActive = activeImageUrl === item.path;
     return (
-      <img
-        onClick={onClick(item.path)}
-        key={item.path}
-        src={item.thumb}
-        className={cx('h-full object-cover aspect-video button-w-action cursor-pointer border border-transparent', {
+      <div
+        className={cx('h-full relative cursor-pointer button-w-action border border-transparent', {
           '!border-neutral-300': isActive,
+          'bg-opacity-5': !isActive,
         })}
-      />
+        onClick={onClick(item.path)}
+        tabIndex={0}
+      >
+        <img key={item.path} src={item.thumb} className="h-full object-cover aspect-video" />
+        <div
+          className={cx('absolute left-0 top-0 right-0 bottom-0', {
+            hidden: isActive,
+            'bg-black bg-opacity-60': !isActive,
+          })}
+        ></div>
+      </div>
     );
   });
 }
