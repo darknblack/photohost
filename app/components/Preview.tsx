@@ -34,7 +34,7 @@ export default function Preview(props: Props) {
           }}
         >
           <div className="max-h-[86vh] relative ">
-            <div className="absolute right-2 top-2 hover:bg-gray-600 hover:text-gray-300 bg-transparent text-center leading-10 h-10 w-10 rounded-full text-neutral-700">
+            <div className="absolute right-2 top-2 hover:bg-gray-600 hover:text-gray-300 bg-transparent text-center leading-10 h-10 w-10 rounded-full text-neutral-800">
               <XCircleIcon className="w-10 h-10 " />
             </div>
 
