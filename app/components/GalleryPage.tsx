@@ -137,7 +137,6 @@ const GalleryPage = (props: Props) => {
                   selectImage={() => selectImage(image.path)}
                   isSelected={selectedImagesId.includes(image.path)}
                   onClick={() => {
-                    console.log('haha');
                     selectPreviewImageUrl(image.path);
                   }}
                 />
@@ -189,7 +188,11 @@ const GalleryPage = (props: Props) => {
           </div>
         </Modal.Body>
       </Modal>
-      <Preview activeImageUrl={state.activeImageUrl} selectPreviewImageUrl={selectPreviewImageUrl} />
+      <Preview
+        activeImageUrl={state.activeImageUrl}
+        selectPreviewImageUrl={selectPreviewImageUrl}
+        images={state.images}
+      />
     </>
   );
 };

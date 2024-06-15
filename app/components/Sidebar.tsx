@@ -52,7 +52,7 @@ function Sidebar(props: Props) {
             ))}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-3">
           <Link
             href={{ pathname: '/gallery', query: { starred: '1' } }}
             as={{ pathname: '/gallery', query: { starred: '1' } }}
@@ -60,6 +60,14 @@ function Sidebar(props: Props) {
           >
             <StarIcon className="text-neutral-300 w-5" />
             <h3 className="text-sm text-neutral-300">Starred</h3>
+          </Link>
+          <Link
+            href={{ pathname: '/gallery', query: { starred: '1' } }}
+            as={{ pathname: '/gallery', query: { starred: '1' } }}
+            className="flex gap-2"
+          >
+            <TrashIcon className="text-neutral-300 w-5" />
+            <h3 className="text-sm text-neutral-300">Deleted Items</h3>
           </Link>
         </div>
       </div>
