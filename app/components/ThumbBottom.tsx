@@ -17,8 +17,7 @@ function ThumbBottom({
   return (
     <button
       ref={ref}
-      className={cx('h-full relative cursor-pointer button-w-action border border-transparent aspect-video', {
-        '!border-neutral-300': isActive,
+      className={cx('h-full relative cursor-pointer button-w-action aspect-video', {
         'bg-opacity-5': !isActive,
       })}
       onClick={onClick(item.path)}

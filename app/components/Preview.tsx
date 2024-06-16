@@ -118,7 +118,7 @@ function Preview(props: Props) {
           </div>
         </div>
 
-        <div ref={thumbsRootRef} className="h-[6%] flex flex-grow-0 gap-0.5 mx-auto transition-all duration-300 pb-2">
+        <div ref={thumbsRootRef} className="h-[6%] flex flex-grow-0 gap-1 mx-auto transition-all duration-300 pb-2">
           {images.map(item => {
             const isActive = activeImageUrl === item.path;
             return <ThumbBottom key={item.path} item={item} isActive={isActive} onClick={onClickThumb} />;
