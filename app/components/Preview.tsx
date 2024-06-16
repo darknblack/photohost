@@ -2,7 +2,7 @@
 
 import { ChevronLeftIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import cx from 'clsx';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import useEvent from '@/app/hooks/useEvent';
 import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 import download from '@/app/server/ClientDownloader';
@@ -64,15 +64,18 @@ function Preview(props: Props) {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [activeImageUrl]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const thumbsRootDivEl = thumbsRootRef.current;
     const buttonEl = thumbsRootRef.current?.children[activeIndex] as HTMLButtonElement;
     if (!thumbsRootDivEl || !buttonEl) return;
 
     const rect = buttonEl.getBoundingClientRect();
-    thumbsRootDivEl.style.transform = `translateX(${
-      (buttonEl.offsetLeft - (window.innerWidth - rect.width) / 2) * -1
-    }px)`;
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const offsetLeft = buttonEl.offsetLeft + rect.width / 2 + scrollBarWidth / 2;
+    const windowWidthHalf = window.innerWidth / 2;
+
+    thumbsRootDivEl.style.transform = `translateX(${(offsetLeft - windowWidthHalf) * -1}px)`;
+
     buttonEl.focus();
   }, [activeIndex, size]);
 
@@ -86,10 +89,9 @@ function Preview(props: Props) {
         'flex flex-col fixed left-0 top-0 right-0 bottom-0 bg-black bg-opacity-70 backdrop-blur animate-backdrop-blur select-none'
       )}
     >
-      <div className="h-full flex flex-col gap-2 p-3">
+      <div className="h-full flex flex-col gap-2">
         <div
-          className="w-full flex-1 h-0 flex justify-center items-center cursor-pointer !pointer-events-auto"
-          tabIndex={0}
+          className="w-full flex-1 h-0 flex justify-center items-center cursor-pointer !pointer-events-auto pt-2"
           onClick={onWhiteSpaceClick}
         >
           <div className="h-full relative pointer-events-none flex items-center justify-center">
@@ -116,7 +118,7 @@ function Preview(props: Props) {
           </div>
         </div>
 
-        <div ref={thumbsRootRef} className="h-[6%] flex flex-grow-0 gap-0.5 mx-auto transition-all duration-300">
+        <div ref={thumbsRootRef} className="h-[6%] flex flex-grow-0 gap-0.5 mx-auto transition-all duration-300 pb-2">
           {images.map(item => {
             const isActive = activeImageUrl === item.path;
             return <ThumbBottom key={item.path} item={item} isActive={isActive} onClick={onClickThumb} />;
