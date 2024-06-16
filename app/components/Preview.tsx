@@ -2,10 +2,12 @@
 
 import { ChevronLeftIcon, ChevronRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import cx from 'clsx';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import useEvent from '@/app/hooks/useEvent';
 import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 import download from '@/app/server/ClientDownloader';
+import ThumbBottom from './ThumbBottom';
+import useWindowSize from '../hooks/useWindowSize';
 interface Props {
   activeImageUrl: string;
   images: Image[];
@@ -14,6 +16,8 @@ interface Props {
 
 function Preview(props: Props) {
   const { activeImageUrl, selectPreviewImageUrl, images } = props;
+  const thumbsRootRef = useRef<HTMLDivElement>(null);
+  const size = useWindowSize();
 
   const onClose = useEvent(() => {
     selectPreviewImageUrl('');
@@ -30,32 +34,51 @@ function Preview(props: Props) {
     onClose();
   });
 
-  const activeIndex = images.findIndex(item => item.path === activeImageUrl);
+  const activeIndex = useMemo(() => images.findIndex(item => item.path === activeImageUrl), [activeImageUrl, images]);
+
+  const goLeft = useEvent(() => {
+    if (activeIndex > 0) {
+      selectPreviewImageUrl(images[activeIndex - 1].path);
+    }
+  });
+
+  const goRight = useEvent(() => {
+    if (activeIndex < images.length - 1) {
+      selectPreviewImageUrl(images[activeIndex + 1].path);
+    }
+  });
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onClose();
-      } else if ((event.key === 'ArrowLeft' || event.key === 'ArrowRight') && activeImageUrl) {
-        if (event.key === 'ArrowLeft' && activeIndex > 0) {
+      if (activeImageUrl) {
+        if (event.key === 'Escape' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
           event.preventDefault();
-          selectPreviewImageUrl(images[activeIndex - 1].path);
         }
-        if (event.key === 'ArrowRight' && activeIndex < images.length - 1) {
-          event.preventDefault();
-          selectPreviewImageUrl(images[activeIndex + 1].path);
-        }
+        if (event.key === 'Escape') onClose();
+        if (event.key === 'ArrowLeft') goLeft();
+        if (event.key === 'ArrowRight') goRight();
       }
     };
 
     document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [activeIndex, images, activeImageUrl]);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [activeImageUrl]);
 
-  if (!activeImageUrl) return null;
+  useEffect(() => {
+    const thumbsRootDivEl = thumbsRootRef.current;
+    const buttonEl = thumbsRootRef.current?.children[activeIndex] as HTMLButtonElement;
+    if (!thumbsRootDivEl || !buttonEl) return;
+
+    const rect = buttonEl.getBoundingClientRect();
+    thumbsRootDivEl.style.transform = `translateX(${
+      (buttonEl.offsetLeft - (window.innerWidth - rect.width) / 2) * -1
+    }px)`;
+    buttonEl.focus();
+  }, [activeIndex, size]);
+
+  const onClickThumb = useEvent((path: string) => () => {
+    selectPreviewImageUrl(path);
+  });
 
   return (
     <div
@@ -84,23 +107,20 @@ function Preview(props: Props) {
           </div>
 
           <div className="absolute h-full px-4 w-full top-0 left-0 right-0 flex items-center justify-between pointer-events-none">
-            <LeftRightButtonNavWrapper
-              isInvisible={activeIndex === 0}
-              onClick={() => selectPreviewImageUrl(images[activeIndex - 1].path)}
-            >
+            <LeftRightButtonNavWrapper isInvisible={activeIndex === 0} onClick={goLeft}>
               <ChevronLeftIcon className={cx('w-6 h-6')} />
             </LeftRightButtonNavWrapper>
-            <LeftRightButtonNavWrapper
-              isInvisible={activeIndex === images.length - 1}
-              onClick={() => selectPreviewImageUrl(images[activeIndex + 1].path)}
-            >
+            <LeftRightButtonNavWrapper isInvisible={activeIndex === images.length - 1} onClick={goRight}>
               <ChevronRightIcon className={cx('w-6 h-6')} />
             </LeftRightButtonNavWrapper>
           </div>
         </div>
 
-        <div className="h-[6%] flex flex-grow-0 justify-center gap-1">
-          <ThumbsBottom images={images} activeImageUrl={activeImageUrl} selectPreviewImageUrl={selectPreviewImageUrl} />
+        <div ref={thumbsRootRef} className="h-[6%] flex flex-grow-0 gap-0.5 mx-auto transition-all duration-300">
+          {images.map(item => {
+            const isActive = activeImageUrl === item.path;
+            return <ThumbBottom key={item.path} item={item} isActive={isActive} onClick={onClickThumb} />;
+          })}
         </div>
       </div>
     </div>
@@ -142,37 +162,6 @@ function LeftRightButtonNavWrapper({
       {children}
     </button>
   );
-}
-
-function ThumbsBottom(props: Props) {
-  const { images, activeImageUrl, selectPreviewImageUrl } = props;
-  const onClick = useEvent((path: string) => () => {
-    selectPreviewImageUrl(path);
-  });
-
-  return images.map(item => {
-    const isActive = activeImageUrl === item.path;
-
-    return (
-      <button
-        key={item.path}
-        className={cx('h-full relative cursor-pointer button-w-action border border-transparent aspect-video', {
-          '!border-neutral-300': isActive,
-          'bg-opacity-5': !isActive,
-        })}
-        onClick={onClick(item.path)}
-        tabIndex={0}
-      >
-        <img src={item.thumb} className="h-full object-cover w-full" />
-        <div
-          className={cx('absolute left-0 top-0 right-0 bottom-0', {
-            hidden: isActive,
-            'bg-black bg-opacity-60': !isActive,
-          })}
-        ></div>
-      </button>
-    );
-  });
 }
 
 export default React.memo(Preview);

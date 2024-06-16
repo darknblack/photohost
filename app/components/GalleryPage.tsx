@@ -47,11 +47,10 @@ const GalleryPage = (props: Props) => {
 
       try {
         const res = await uploadImageOnServer(activeFolder, formData);
-        if (res === 1) {
-          router.refresh();
-        }
       } catch (e) {}
     }
+
+    router.refresh();
   });
 
   const createFolder = useEvent(async () => {
@@ -194,11 +193,13 @@ const GalleryPage = (props: Props) => {
           </div>
         </Modal.Body>
       </Modal>
-      <Preview
-        activeImageUrl={state.activeImageUrl}
-        selectPreviewImageUrl={selectPreviewImageUrl}
-        images={state.images}
-      />
+      {state.activeImageUrl && (
+        <Preview
+          activeImageUrl={state.activeImageUrl}
+          selectPreviewImageUrl={selectPreviewImageUrl}
+          images={state.images}
+        />
+      )}
     </>
   );
 };
