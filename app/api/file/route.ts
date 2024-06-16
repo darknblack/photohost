@@ -13,35 +13,27 @@ export async function GET(req: NextRequest) {
   try {
     const ext = (filenameWithoutParam && filenameWithoutParam.split('.').pop()?.toLocaleLowerCase()) || '';
 
+    const headers = {
+      headers: {
+        'Content-Type': 'image/' + ext,
+        'Cache-Control': 'public, max-age=259200, s-maxage=259200', // 3 days
+      },
+    };
+
     if (filenameWithoutParam && VALID_EXTENSIONS.includes(ext)) {
       if (thumb === null) {
         const res = await getFile(folder, filenameWithoutParam, GALLERY_ROOT_PATH);
         if (res) {
-          return new NextResponse(res, {
-            headers: {
-              'Content-Type': 'image/' + ext,
-              'Cache-Control': 'public, max-age=5',
-            },
-          });
+          return new NextResponse(res, headers);
         }
       } else {
         const res = await getFile('', filenameWithoutParam, THUMBS_ROOT_PATH);
         if (res) {
-          return new NextResponse(res, {
-            headers: {
-              'Content-Type': 'image/' + ext,
-              'Cache-Control': 'public, max-age=5',
-            },
-          });
+          return new NextResponse(res, headers);
         } else {
           const res = await getFile(folder, filenameWithoutParam, GALLERY_ROOT_PATH);
           if (res) {
-            return new NextResponse(res, {
-              headers: {
-                'Content-Type': 'image/' + ext,
-                'Cache-Control': 'public, max-age=5',
-              },
-            });
+            return new NextResponse(res, headers);
           }
         }
       }

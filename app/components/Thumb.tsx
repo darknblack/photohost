@@ -89,10 +89,10 @@ function Thumb(props: Props) {
         <div className="items-center justify-center w-full flex gap-1.5">
           <button
             className={cx(
-              'group-hover/thumb:block hidden button-w-action',
+              'group-hover/thumb:block hidden button-w-action transition-all',
               'p-2 rounded-full',
-              'border-1 border-neutral-100 bg-neutral-500 bg-opacity-75 text-neutral-300 ',
-              'hover:bg-opacity-100'
+              'border-1 border-neutral-100 bg-neutral-500 bg-opacity-75 text-neutral-200 ',
+              'hover:bg-opacity-100 hover:scale-105'
             )}
             onClick={onClickDownload}
           >
