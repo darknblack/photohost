@@ -18,6 +18,7 @@ function Preview(props: Props) {
   const { activeImageUrl, selectPreviewImageUrl, images } = props;
   const thumbsRootRef = useRef<HTMLDivElement>(null);
   const size = useWindowSize();
+  const isInitialOpening = useRef(true);
 
   const onClose = useEvent(() => {
     selectPreviewImageUrl('');
@@ -76,7 +77,13 @@ function Preview(props: Props) {
 
     thumbsRootDivEl.style.transform = `translateX(${(offsetLeft - windowWidthHalf) * -1}px)`;
 
+    if (!isInitialOpening.current && !thumbsRootDivEl.classList.contains('transition-all')) {
+      thumbsRootDivEl.classList.add('transition-all');
+      thumbsRootDivEl.classList.add('duration-300');
+    }
+
     buttonEl.focus();
+    isInitialOpening.current = false;
   }, [activeIndex, size]);
 
   const onClickThumb = useEvent((path: string) => () => {
@@ -118,7 +125,7 @@ function Preview(props: Props) {
           </div>
         </div>
 
-        <div ref={thumbsRootRef} className="h-[6%] flex gap-1 transition-all duration-300 pb-2">
+        <div ref={thumbsRootRef} className="h-[6%] flex gap-1 pb-2">
           {images.map(item => {
             const isActive = activeImageUrl === item.path;
             return <ThumbBottom key={item.path} item={item} isActive={isActive} onClick={onClickThumb} />;
