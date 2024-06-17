@@ -10,15 +10,13 @@ export const dynamic = 'force-dynamic';
 export default async function Home({ searchParams }: { searchParams?: searchParams }) {
   const activeFolder = (((searchParams && searchParams['folder']) ?? '') as string) || '';
   let activePage: string | number = ((searchParams && searchParams['page']) ?? '') as string;
-  let activePageSize: string | number = ((searchParams && searchParams['pageSize']) ?? '') as string;
   const isStarredOnly: boolean = !!(((searchParams && searchParams['starred']) ?? '') as string);
 
-  if (!activePage) activePage = 1;
-  if (!activePageSize) activePageSize = 50;
+  activePage = !activePage ? 1 : activePage;
 
   const images = isStarredOnly
-    ? await getStarredImages({ page: Number(activePage), pageSize: Number(activePageSize) })
-    : await getImages({ folder: activeFolder, page: Number(activePage), pageSize: Number(activePageSize) });
+    ? await getStarredImages({ page: Number(activePage) })
+    : await getImages({ page: Number(activePage), folder: activeFolder });
 
   if (images === undefined) {
     return <div>Something went wrong</div>;
@@ -34,6 +32,7 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
         folders={folders}
         activeFolder={activeFolder}
         isStarredOnly={isStarredOnly}
+        cPage={activePage as number}
       />
     </div>
   );

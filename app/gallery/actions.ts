@@ -1,4 +1,5 @@
 'use server';
+
 import { GALLERY_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS, getHashValue } from '@/util/fs-utils';
 import ImageManipulation from '@/util/image-manipulation';
 import fs from 'fs';
@@ -13,8 +14,10 @@ interface Props {
   pageSize?: number;
 }
 
-export async function getStarredImages(props: Props) {
-  const { page = 1, pageSize = 50 } = props;
+const DEFAULT_PAGE_SIZE = 40;
+
+export async function getStarredImages(props: Props): Promise<undefined | { images: ExtendedImage[]; total: number }> {
+  const { page = 1, pageSize = DEFAULT_PAGE_SIZE } = props;
   const allFolders = await getAllFolders();
 
   const images: ExtendedImage[] = [];
@@ -52,7 +55,41 @@ export async function getStarredImages(props: Props) {
     loopImages(pathFolder, imagesInFolder, folder.name, images);
   }
 
-  return images.slice((page - 1) * pageSize, page * pageSize);
+  return {
+    images: images.slice((page - 1) * pageSize, page * pageSize),
+    total: images.length,
+  };
+}
+
+export async function getImages(props: Props): Promise<
+  | undefined
+  | {
+      images: ExtendedImage[];
+      total: number;
+    }
+> {
+  const { folder = '', page = 1, pageSize = DEFAULT_PAGE_SIZE } = props;
+
+  const pathFolder = folder ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
+  if (folder && !fs.existsSync(pathFolder)) return undefined;
+
+  fs.mkdirSync(pathFolder, { recursive: true });
+  const imagesInFolder = fs
+    .readdirSync(pathFolder)
+    .filter(file => file.match(/\.(jpe?g|png|gif)$/i))
+    .sort((a, b) => {
+      const [aMs] = a.split('-');
+      const [bMs] = b.split('-');
+      return Number(bMs) - Number(aMs);
+    });
+
+  const images: ExtendedImage[] = [];
+  loopImages(pathFolder, imagesInFolder, folder, images);
+
+  return {
+    images: images.slice((page - 1) * pageSize, page * pageSize),
+    total: images.length,
+  };
 }
 
 function loopImages(pathFolder: string, imagesInFolder: string[], folder: string, images: any[]) {
@@ -85,27 +122,6 @@ function loopImages(pathFolder: string, imagesInFolder: string[], folder: string
 
     images.push(image);
   }
-}
-
-export async function getImages(props: Props): Promise<ExtendedImage[] | undefined> {
-  const { folder = '', page = 1, pageSize = 50 } = props;
-
-  const pathFolder = folder ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
-  if (folder && !fs.existsSync(pathFolder)) return undefined;
-
-  fs.mkdirSync(pathFolder, { recursive: true });
-  const imagesInFolder = fs
-    .readdirSync(pathFolder)
-    .filter(file => file.match(/\.(jpe?g|png|gif)$/i))
-    .sort((a, b) => {
-      const [aMs] = a.split('-');
-      const [bMs] = b.split('-');
-      return Number(bMs) - Number(aMs);
-    });
-
-  const images: ExtendedImage[] = [];
-  loopImages(pathFolder, imagesInFolder, folder, images);
-  return images.slice((page - 1) * pageSize, page * pageSize);
 }
 
 export async function getAllFolders(): Promise<

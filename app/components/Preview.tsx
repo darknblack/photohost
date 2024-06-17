@@ -8,14 +8,17 @@ import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 import download from '@/app/server/ClientDownloader';
 import ThumbBottom from './ThumbBottom';
 import useWindowSize from '../hooks/useWindowSize';
+import InfiniteScrollTriggerPoint from './InfiniteScrollTriggerPoint';
 interface Props {
   activeImageUrl: string;
   images: Image[];
   selectPreviewImageUrl: (url: string) => void;
+  onInfiniteScrollTriggerPoint: () => void; // useEvent
+  isPendingNewImages: boolean;
 }
 
 function Preview(props: Props) {
-  const { activeImageUrl, selectPreviewImageUrl, images } = props;
+  const { activeImageUrl, selectPreviewImageUrl, images, onInfiniteScrollTriggerPoint, isPendingNewImages } = props;
   const thumbsRootRef = useRef<HTMLDivElement>(null);
   const size = useWindowSize();
   const isInitialOpening = useRef(true);
@@ -130,6 +133,7 @@ function Preview(props: Props) {
             const isActive = activeImageUrl === item.path;
             return <ThumbBottom key={item.path} item={item} isActive={isActive} onClick={onClickThumb} />;
           })}
+          {!isPendingNewImages && <InfiniteScrollTriggerPoint cb={onInfiniteScrollTriggerPoint} />}
         </div>
       </div>
     </div>

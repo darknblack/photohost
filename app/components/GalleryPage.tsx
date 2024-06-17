@@ -2,34 +2,43 @@
 
 import { FolderIcon } from '@heroicons/react/24/outline';
 import { Button, Modal, TextInput } from 'flowbite-react';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import cx from 'clsx';
 import useEvent from '@/app/hooks/useEvent';
-import { addFolderToServer, uploadImageOnServer } from '@/app/gallery/actions';
+import { addFolderToServer, getImages, getStarredImages, uploadImageOnServer } from '@/app/gallery/actions';
 import { useRouter } from 'next/navigation';
 import Thumb from './Thumb';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Link from 'next/link';
 import Preview from './Preview';
+import InfiniteScrollTriggerPoint from './InfiniteScrollTriggerPoint';
 interface Props {
-  images: Image[];
+  images: {
+    images: Image[];
+    total: number;
+  };
   folders: Folder[];
   activeFolder: string;
   isStarredOnly: boolean;
+  cPage: number;
 }
 
 const GalleryPage = (props: Props) => {
-  const { images, folders, activeFolder, isStarredOnly } = props;
+  const { folders, activeFolder, isStarredOnly, cPage } = props;
+
   const [selectedImagesId, setSelectedImagesId] = useState<string[]>([]);
   const router = useRouter();
+  const [isPendingNewImages, startFetchingNewImages] = useTransition();
 
   const [state, setState] = useState({
     isListView: false,
     openAddFolder: false,
     folderName: '',
-    images: images,
     activeImageUrl: '',
+    cPage: cPage,
+    images: props.images.images,
+    total: props.images.total,
   });
 
   const changeState = useEvent((newState: Partial<typeof state>) => {
@@ -99,6 +108,30 @@ const GalleryPage = (props: Props) => {
     }
   );
 
+  const onInfiniteScrollTriggerPoint = useEvent(async () => {
+    if (isPendingNewImages) return;
+
+    if (state.total > state.images.length) {
+      startFetchingNewImages(async () => {
+        const newPage = state.cPage + 1;
+
+        const res = isStarredOnly
+          ? await getStarredImages({ page: newPage })
+          : await getImages({ page: newPage, folder: activeFolder });
+
+        if (res) {
+          const newImages = [...state.images, ...res.images];
+          setState(prev => ({
+            ...prev,
+            images: newImages,
+            total: res.total,
+            cPage: newPage,
+          }));
+        }
+      });
+    }
+  });
+
   return (
     <>
       <div className="flex bg-neutral-900">
@@ -146,6 +179,7 @@ const GalleryPage = (props: Props) => {
                   onParentclick={onThumbParentClick(image.path)}
                 />
               ))}
+              {isPendingNewImages ? '' : <InfiniteScrollTriggerPoint cb={onInfiniteScrollTriggerPoint} />}
             </div>
           </div>
         </div>
@@ -198,6 +232,8 @@ const GalleryPage = (props: Props) => {
           activeImageUrl={state.activeImageUrl}
           selectPreviewImageUrl={selectPreviewImageUrl}
           images={state.images}
+          onInfiniteScrollTriggerPoint={onInfiniteScrollTriggerPoint}
+          isPendingNewImages={isPendingNewImages}
         />
       )}
     </>
