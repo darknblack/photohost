@@ -1,12 +1,13 @@
 'use server';
 
-import { GALLERY_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS, getHashValue } from '@/util/fs-utils';
+import { GALLERY_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS, ZIP_PATH, getHashValue } from '@/util/fs-utils';
 import ImageManipulation from '@/util/image-manipulation';
 import fs from 'fs';
 import { revalidatePath } from 'next/cache';
 import path from 'path';
 import sharp from 'sharp';
 import FilenameHandler from '@/app/server/FilenameHandler';
+import archiver from 'archiver';
 
 interface Props {
   folder?: string;
@@ -267,4 +268,50 @@ function encodeObjectToQueryString(obj: any) {
 
 export default async function revalidatePage(path: string) {
   revalidatePath(path, 'page');
+}
+
+export async function zipFile(pathFiles: string[]) {
+  fs.mkdirSync(ZIP_PATH, { recursive: true });
+
+  const filename = `${new Date().getTime()}.zip`;
+
+  const output = fs.createWriteStream(path.join(ZIP_PATH, filename));
+  const archive = archiver('zip', {
+    zlib: { level: 9 }, // Sets the compression level.
+  });
+  archive.pipe(output);
+
+  for (let i = 0; pathFiles.length > i; i++) {
+    const [image, folder] = await extractImageAndFolder(pathFiles[i]);
+    const filename = await FilenameHandler.getFileFromFolder(folder, image);
+    if (!filename) continue;
+
+    const pathFile = folder ? path.join(GALLERY_ROOT_PATH, folder, filename) : path.join(GALLERY_ROOT_PATH, filename);
+    if (fs.existsSync(pathFile)) {
+      archive.file(pathFile, { name: path.basename(pathFile) });
+    }
+  }
+
+  // good practice to catch this error explicitly
+  archive.on('error', function (err) {
+    throw err;
+  });
+
+  await archive.finalize();
+
+  return filename;
+}
+
+export async function deleteZipFile(filename: string) {
+  const fullPath = path.join(ZIP_PATH, filename);
+  if (fs.existsSync(fullPath) && filename) {
+    fs.unlinkSync(fullPath);
+  }
+}
+
+async function extractImageAndFolder(url: string) {
+  const urlParams = new URLSearchParams(url.split('?')[1]);
+  const image = urlParams.get('image') || '';
+  const folder = urlParams.get('folder') || '';
+  return [image, folder];
 }

@@ -28,8 +28,8 @@ function getFilename(imageUrl: string) {
   return null;
 }
 
-const download = (url: string) => {
-  const imageName = getFilename(url) as string;
+const download = (url: string, filename: string = '') => {
+  const imageName = filename ? filename : (getFilename(url) as string);
 
   const link = document.createElement('a');
   link.href = url;

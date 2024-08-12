@@ -17,9 +17,16 @@ import cx from 'clsx';
 import { Breadcrumb } from 'flowbite-react';
 import Link from 'next/link';
 import { memo, useRef, useState } from 'react';
-import { deleteFilesFromServer, moveFilesFromServer, renameFolder } from '@/app/gallery/actions';
+import {
+  deleteFilesFromServer,
+  deleteZipFile,
+  moveFilesFromServer,
+  renameFolder,
+  zipFile,
+} from '@/app/gallery/actions';
 import { useRouter } from 'next/navigation';
 import useEvent from '@/app/hooks/useEvent';
+import download from '../server/ClientDownloader';
 
 interface State {
   isListView: boolean;
@@ -132,7 +139,36 @@ function Header(props: Props) {
             </>
           )}
         </Button>
-        <Button size="xs" disabled={selectedImagesId.length === 0} className="bg-transparent border border-neutral-400">
+        <Button
+          size="xs"
+          disabled={selectedImagesId.length === 0}
+          className="bg-transparent border border-neutral-400"
+          onClick={async () => {
+            // Download single image
+            if (selectedImagesId.length === 1) {
+              download(selectedImagesId[0]);
+              return;
+            }
+
+            // Download multiple images
+            let zipFilename = '';
+            try {
+              zipFilename = await zipFile(selectedImagesId);
+              const res = await fetch(`api/zip?filename=${zipFilename}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/zip' },
+              });
+              const blob = await res.blob();
+              const clientDownloadFilename = `photohost-${zipFilename.split('.')[0]}-${
+                selectedImagesId.length
+              }-files.zip`;
+              download(URL.createObjectURL(blob), clientDownloadFilename);
+            } catch (e) {
+            } finally {
+              await deleteZipFile(zipFilename);
+            }
+          }}
+        >
           <ArrowDownTrayIcon className="w-5 text-neutral-200" />
         </Button>
         <Button
