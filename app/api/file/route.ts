@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
           return new NextResponse(res, headers);
         }
       } else {
-        const res = await getFile('', filenameWithoutParam, THUMBS_ROOT_PATH);
+        const res = await getThumbFile(filenameWithoutParam);
         if (res) {
           return new NextResponse(res, headers);
         } else {
@@ -59,4 +59,13 @@ async function getFile(folder: string, fileNameWithoutParam: string, basePath: s
       return fs.readFileSync(realpath);
     }
   }
+}
+
+async function getThumbFile(filename: string) {
+  const fullPath = path.join(THUMBS_ROOT_PATH, filename);
+  if (fs.existsSync(fullPath)) {
+    return fs.readFileSync(fullPath);
+  }
+
+  return undefined;
 }
