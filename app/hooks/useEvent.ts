@@ -11,6 +11,7 @@ type EventRef<T> = { callback: T; stable: T };
 function useEvent<A extends any[], R>(callback: Fn<A, R>): Fn<A, R> {
   // @ts-ignore
   let ref = useRef<EventRef<Fn<A, R>>>({
+    // @ts-ignore
     stable: (...args) => ref.current.callback(...args),
     callback,
   });
