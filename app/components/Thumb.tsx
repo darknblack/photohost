@@ -19,10 +19,11 @@ interface Props {
   selectImage: () => void;
   isSelected: boolean;
   onParentclick: (event: React.MouseEvent<HTMLDivElement | HTMLAnchorElement | HTMLButtonElement>) => void;
+  pathname: string;
 }
 
 function Thumb(props: Props) {
-  const { image, state, selectImage, isSelected, onParentclick } = props;
+  const { image, state, selectImage, isSelected, onParentclick, pathname } = props;
   const isStarred = image.isStar;
   const router = useRouter();
 

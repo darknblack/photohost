@@ -1,6 +1,6 @@
 import GalleryPage from '@/app/components/GalleryPage';
 import { getAllFolders, getImages, getStarredImages } from '@/app/gallery/actions';
-import { GALLERY_ROOT_PATH } from '@/util/fs-utils';
+import { DELETED_IMAGES_PATH } from '@/util/fs-utils';
 import path from 'path';
 
 type searchParams = {
@@ -9,20 +9,10 @@ type searchParams = {
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home({ searchParams }: { searchParams?: searchParams }) {
-  const activeFolder = (((searchParams && searchParams['folder']) ?? '') as string) || '';
+export default async function Trash({ searchParams }: { searchParams?: searchParams }) {
   let activePage: string | number = ((searchParams && searchParams['page']) ?? '') as string;
-  const isStarredOnly: boolean = !!(((searchParams && searchParams['starred']) ?? '') as string);
-
   activePage = !activePage ? 1 : activePage;
-
-  const images = isStarredOnly
-    ? await getStarredImages({ page: Number(activePage) })
-    : await getImages({
-        page: Number(activePage),
-        folder: activeFolder,
-        isGallery: true,
-      });
+  const images = await getImages({ page: Number(activePage), folder: path.join(DELETED_IMAGES_PATH), isTrash: true });
 
   if (images === undefined) {
     return <div>Something went wrong</div>;
@@ -36,8 +26,8 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
         key={new Date().getTime()}
         images={images}
         folders={folders}
-        activeFolder={activeFolder}
-        isStarredOnly={isStarredOnly}
+        activeFolder={''}
+        isStarredOnly={false}
         cPage={activePage as number}
       />
     </div>

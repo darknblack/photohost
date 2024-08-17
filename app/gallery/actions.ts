@@ -1,23 +1,34 @@
 'use server';
 
-import { GALLERY_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS, ZIP_PATH, getHashValue } from '@/util/fs-utils';
+import {
+  DELETED_IMAGES_PATH,
+  GALLERY_ROOT_PATH,
+  THUMBS_ROOT_PATH,
+  VALID_EXTENSIONS,
+  ZIP_PATH,
+  getHashValue,
+} from '@/util/fs-utils';
 import ImageManipulation from '@/util/image-manipulation';
 import fs from 'fs';
 import { revalidatePath } from 'next/cache';
-import path from 'path';
+import path, { basename } from 'path';
 import sharp from 'sharp';
 import FilenameHandler from '@/app/server/FilenameHandler';
 import archiver from 'archiver';
 
-interface Props {
+interface GetImagesProps {
   folder?: string;
   page?: number;
   pageSize?: number;
+  isGallery?: boolean;
+  isTrash?: boolean;
 }
 
 const DEFAULT_PAGE_SIZE = 40;
 
-export async function getStarredImages(props: Props): Promise<undefined | { images: ExtendedImage[]; total: number }> {
+export async function getStarredImages(
+  props: GetImagesProps
+): Promise<undefined | { images: ExtendedImage[]; total: number }> {
   const { page = 1, pageSize = DEFAULT_PAGE_SIZE } = props;
   const allFolders = await getAllFolders();
 
@@ -62,16 +73,35 @@ export async function getStarredImages(props: Props): Promise<undefined | { imag
   };
 }
 
-export async function getImages(props: Props): Promise<
+export async function getImages(props: GetImagesProps): Promise<
   | undefined
   | {
       images: ExtendedImage[];
       total: number;
     }
 > {
-  const { folder = '', page = 1, pageSize = DEFAULT_PAGE_SIZE } = props;
+  const { folder = '', page = 1, pageSize = DEFAULT_PAGE_SIZE, isGallery = false, isTrash = false } = props;
+  // const pathFolder = folder ? folder : GALLERY_ROOT_PATH;
 
-  const pathFolder = folder ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
+  const pathFolder = (() => {
+    if (isGallery) {
+      if (folder) {
+        return path.join(GALLERY_ROOT_PATH, folder);
+      }
+      return GALLERY_ROOT_PATH;
+    }
+
+    if (isTrash) {
+      return DELETED_IMAGES_PATH;
+    }
+
+    return '';
+  })();
+
+  if (isTrash) {
+    fs.mkdirSync(DELETED_IMAGES_PATH, { recursive: true });
+  }
+
   if (folder && !fs.existsSync(pathFolder)) return undefined;
 
   fs.mkdirSync(pathFolder, { recursive: true });
@@ -85,7 +115,7 @@ export async function getImages(props: Props): Promise<
     });
 
   const images: ExtendedImage[] = [];
-  loopImages(pathFolder, imagesInFolder, folder, images);
+  loopImages(pathFolder, imagesInFolder, folder, images, isTrash);
 
   return {
     images: images.slice((page - 1) * pageSize, page * pageSize),
@@ -93,7 +123,13 @@ export async function getImages(props: Props): Promise<
   };
 }
 
-function loopImages(pathFolder: string, imagesInFolder: string[], folder: string, images: any[]) {
+function loopImages(
+  pathFolder: string,
+  imagesInFolder: string[],
+  folder: string,
+  images: any[],
+  isTrash: boolean = false
+) {
   for (let i = 0; i < imagesInFolder.length; i++) {
     const imagePath = path.join(pathFolder, imagesInFolder[i]);
     const stat = fs.statSync(imagePath);
@@ -110,15 +146,24 @@ function loopImages(pathFolder: string, imagesInFolder: string[], folder: string
       image: filenameWithoutParam,
     };
 
-    if (folder) searchParamsObject.folder = folder;
+    if (folder && !isTrash) {
+      searchParamsObject.folder = folder;
+    }
+
+    const pathParams: any = { ...searchParamsObject };
+    const thumbParams: any = { ...searchParamsObject, thumb: '1' };
+    if (isTrash) {
+      pathParams.trash = '1';
+      thumbParams.trash = '1';
+    }
 
     const image = {
-      path: `/api/file?${encodeObjectToQueryString(searchParamsObject)}`,
-      thumb: `/api/file?${encodeObjectToQueryString({ ...searchParamsObject, thumb: '1' })}`,
+      path: `/api/file?${encodeObjectToQueryString(pathParams)}`,
+      thumb: `/api/file?${encodeObjectToQueryString(thumbParams)}`,
       created: stat.birthtimeMs,
       filename: filenameWithoutParam,
       isStar: isStar,
-      folder: folder ?? '',
+      folder: (!isTrash && folder) ?? '',
     };
 
     images.push(image);
@@ -200,8 +245,15 @@ export async function deleteFilesFromServer(arrOfFilenamesWithoutParam: [string,
 
       // thumb folder + filename
       const fullThumbPath = path.join(THUMBS_ROOT_PATH, filename);
-      if (fs.existsSync(fullFilePath)) fs.unlinkSync(fullFilePath);
-      if (fs.existsSync(fullThumbPath)) fs.unlinkSync(fullThumbPath);
+      fs.mkdirSync(DELETED_IMAGES_PATH, { recursive: true });
+      const deletedFullPath = path.join(DELETED_IMAGES_PATH, basename(fullFilePath));
+      if (fs.existsSync(fullFilePath)) {
+        fs.renameSync(fullFilePath, deletedFullPath);
+      }
+      // TODO: delete images
+      // if (fs.existsSync(fullThumbPath)) {
+      //   fs.unlinkSync(fullThumbPath);
+      // }
     }
   }
 }

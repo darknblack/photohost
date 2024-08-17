@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
-import { GALLERY_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS } from '@/util/fs-utils';
+import { DELETED_IMAGES_PATH, GALLERY_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS } from '@/util/fs-utils';
 import FilenameHandler from '@/app/server/FilenameHandler';
 
 export async function GET(req: NextRequest) {
@@ -9,6 +9,10 @@ export async function GET(req: NextRequest) {
   const filenameWithoutParam = searchParams.get('image') as string | null;
   const folder = searchParams.get('folder') as string | '';
   const thumb = searchParams.get('thumb') as string | null;
+  const trash = searchParams.get('trash') as string | null;
+
+  const isThumb = !!thumb;
+  const isTrash = !!trash;
 
   try {
     const ext = (filenameWithoutParam && filenameWithoutParam.split('.').pop()?.toLocaleLowerCase()) || '';
@@ -20,8 +24,20 @@ export async function GET(req: NextRequest) {
       },
     };
 
+    console.log('aaa', isTrash, !isThumb);
+
     if (filenameWithoutParam && VALID_EXTENSIONS.includes(ext)) {
-      if (thumb === null) {
+      if (isTrash && !isThumb) {
+        const res = await getFile('', filenameWithoutParam, DELETED_IMAGES_PATH, true);
+        console.log('res', res);
+        if (res) {
+          return new NextResponse(res, headers);
+        }
+      }
+
+      console.log('aaaa');
+
+      if (isThumb === null) {
         const res = await getFile(folder, filenameWithoutParam, GALLERY_ROOT_PATH);
         if (res) {
           return new NextResponse(res, headers);
@@ -51,8 +67,11 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ error: 'Failed to fetch image' }, { status: 400 });
 }
 
-async function getFile(folder: string, fileNameWithoutParam: string, basePath: string) {
-  const filename = await FilenameHandler.getFileFromFolder(folder, fileNameWithoutParam);
+async function getFile(folder: string, fileNameWithoutParam: string, basePath: string, isTrash: boolean = false) {
+  const filename = isTrash
+    ? await FilenameHandler.getDeletedFileFromServer(fileNameWithoutParam)
+    : await FilenameHandler.getFileFromFolder(folder, fileNameWithoutParam);
+
   if (filename) {
     const realpath = folder ? path.join(basePath, folder, filename) : path.join(basePath, filename);
     if (fs.existsSync(realpath)) {

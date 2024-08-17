@@ -44,6 +44,7 @@ interface Props {
   images: Image[];
   folders: Folder[];
   isStarredOnly: boolean;
+  pathname: string;
 }
 
 function Header(props: Props) {
@@ -58,6 +59,7 @@ function Header(props: Props) {
     images,
     folders,
     isStarredOnly,
+    pathname,
   } = props;
   const router = useRouter();
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
@@ -91,7 +93,11 @@ function Header(props: Props) {
       <div className="flex gap-2">
         <Breadcrumb className="bg-neutral-900 px-3 rounded min-w-[24rem] py-2">
           <Breadcrumb.Item>
-            {isStarredOnly ? (
+            {pathname === '/trash' ? (
+              <Link href={{ pathname: '/trash' }} className="text-neutral-200">
+                Trash
+              </Link>
+            ) : isStarredOnly ? (
               <Link href={{ pathname: '/gallery', query: { starred: '1' } }} className="text-neutral-200">
                 Starred
               </Link>

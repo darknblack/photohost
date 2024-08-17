@@ -42,7 +42,7 @@ function Sidebar(props: Props) {
                       className={cx('text-sm text-neutral-500', {
                         '!text-neutral-300': folder.name === activeFolder,
                       })}
-                      href={`?folder=${encodeURIComponent(folder.name)}`}
+                      href={`/gallery?folder=${encodeURIComponent(folder.name)}`}
                     >
                       {folder.name} <span className={cx('text-xs text-neutral-600')}>({folder.count})</span>
                     </Link>
@@ -61,13 +61,9 @@ function Sidebar(props: Props) {
             <StarIcon className="text-neutral-300 w-5" />
             <h3 className="text-sm text-neutral-300">Starred</h3>
           </Link>
-          <Link
-            href={{ pathname: '/gallery', query: { starred: '1' } }}
-            as={{ pathname: '/gallery', query: { starred: '1' } }}
-            className="flex gap-2"
-          >
+          <Link href={{ pathname: '/trash' }} as={{ pathname: '/trash' }} className="flex gap-2">
             <TrashIcon className="text-neutral-300 w-5" />
-            <h3 className="text-sm text-neutral-300">Deleted Items</h3>
+            <h3 className="text-sm text-neutral-300">Trash</h3>
           </Link>
         </div>
       </div>

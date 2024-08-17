@@ -13,6 +13,7 @@ import Header from './Header';
 import Link from 'next/link';
 import Preview from './Preview';
 import InfiniteScrollTriggerPoint from './InfiniteScrollTriggerPoint';
+import { usePathname } from 'next/navigation';
 interface Props {
   images: {
     images: Image[];
@@ -28,8 +29,9 @@ const GalleryPage = (props: Props) => {
   const { folders, activeFolder, isStarredOnly, cPage } = props;
 
   const [selectedImagesId, setSelectedImagesId] = useState<string[]>([]);
-  const router = useRouter();
   const [isPendingNewImages, startFetchingNewImages] = useTransition();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const [state, setState] = useState({
     isListView: false,
@@ -117,7 +119,7 @@ const GalleryPage = (props: Props) => {
 
         const res = isStarredOnly
           ? await getStarredImages({ page: newPage })
-          : await getImages({ page: newPage, folder: activeFolder });
+          : await getImages({ page: newPage, folder: activeFolder, isGallery: true });
 
         if (res) {
           const newImages = [...state.images, ...res.images];
@@ -148,8 +150,9 @@ const GalleryPage = (props: Props) => {
             images={state.images}
             folders={folders}
             isStarredOnly={isStarredOnly}
+            pathname={pathname}
           />
-          <div className="">
+          <div>
             <div
               className={cx('grid px-4 py-5', {
                 'grid-cols-3 gap-4': state.isListView,
@@ -158,6 +161,7 @@ const GalleryPage = (props: Props) => {
             >
               {activeFolder === '' &&
                 !isStarredOnly &&
+                pathname !== '/trash' &&
                 folders.map(folder => (
                   <Link
                     key={folder.name}
@@ -169,16 +173,19 @@ const GalleryPage = (props: Props) => {
                     <h3 className="text-center text-neutral-300 group-hover/folder:text-neutral-200">{folder.name}</h3>
                   </Link>
                 ))}
-              {state.images.map(image => (
-                <Thumb
-                  key={image.path}
-                  image={image}
-                  state={state}
-                  selectImage={() => selectImage(image.path)}
-                  isSelected={selectedImagesId.includes(image.path)}
-                  onParentclick={onThumbParentClick(image.path)}
-                />
-              ))}
+              {state.images.map(image => {
+                return (
+                  <Thumb
+                    key={image.path}
+                    image={image}
+                    state={state}
+                    selectImage={() => selectImage(image.path)}
+                    isSelected={selectedImagesId.includes(image.path)}
+                    onParentclick={onThumbParentClick(image.path)}
+                    pathname={pathname}
+                  />
+                );
+              })}
               {isPendingNewImages ? '' : <InfiniteScrollTriggerPoint cb={onInfiniteScrollTriggerPoint} />}
             </div>
           </div>

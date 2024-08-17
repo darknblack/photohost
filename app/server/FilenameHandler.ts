@@ -1,4 +1,4 @@
-import { GALLERY_ROOT_PATH } from '@/util/fs-utils';
+import { DELETED_IMAGES_PATH, GALLERY_ROOT_PATH } from '@/util/fs-utils';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -46,6 +46,14 @@ const FilenameHandler = {
   async getFileFromFolder(folder: string, filename: string): Promise<string | undefined> {
     const basePath = folder ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
     const files = await fs.readdir(basePath);
+    const file = files.find(
+      file =>
+        this.getFilenameWithoutParamAndExtension(file).join('.').toLocaleLowerCase() === filename.toLocaleLowerCase()
+    );
+    return file;
+  },
+  async getDeletedFileFromServer(filename: string): Promise<string | undefined> {
+    const files = await fs.readdir(DELETED_IMAGES_PATH);
     const file = files.find(
       file =>
         this.getFilenameWithoutParamAndExtension(file).join('.').toLocaleLowerCase() === filename.toLocaleLowerCase()
