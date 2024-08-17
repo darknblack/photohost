@@ -24,20 +24,15 @@ export async function GET(req: NextRequest) {
       },
     };
 
-    console.log('aaa', isTrash, !isThumb);
-
     if (filenameWithoutParam && VALID_EXTENSIONS.includes(ext)) {
       if (isTrash && !isThumb) {
         const res = await getFile('', filenameWithoutParam, DELETED_IMAGES_PATH, true);
-        console.log('res', res);
         if (res) {
           return new NextResponse(res, headers);
         }
       }
 
-      console.log('aaaa');
-
-      if (isThumb === null) {
+      if (!isThumb) {
         const res = await getFile(folder, filenameWithoutParam, GALLERY_ROOT_PATH);
         if (res) {
           return new NextResponse(res, headers);
