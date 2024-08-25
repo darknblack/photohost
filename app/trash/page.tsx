@@ -1,5 +1,5 @@
 import GalleryPage from '@/app/components/GalleryPage';
-import { getAllFolders, getImages, getStarredImages } from '@/app/gallery/actions';
+import { getAllFolders, getImages, getStarredImages } from '@/app/server/actions';
 import { DELETED_IMAGES_PATH } from '@/util/fs-utils';
 import path from 'path';
 

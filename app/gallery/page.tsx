@@ -1,5 +1,5 @@
 import GalleryPage from '@/app/components/GalleryPage';
-import { getAllFolders, getImages } from '@/app/gallery/actions';
+import { getAllFolders, getImages } from '@/app/server/actions';
 
 type searchParams = {
   [key: string]: string | string[] | undefined;

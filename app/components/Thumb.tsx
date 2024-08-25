@@ -7,7 +7,7 @@ import { StarIcon as StarredIcon } from '@heroicons/react/16/solid';
 import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 import { Checkbox } from 'flowbite-react';
 import { memo } from 'react';
-import { toggleStar } from '@/app/gallery/actions';
+import { toggleStar } from '@/app/server/actions';
 import { useRouter } from 'next/navigation';
 import useEvent from '../hooks/useEvent';
 import download from '../server/ClientDownloader';

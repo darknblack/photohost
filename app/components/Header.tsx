@@ -25,7 +25,7 @@ import {
   moveFilesFromServer,
   renameFolder,
   zipFile,
-} from '@/app/gallery/actions';
+} from '@/app/server/actions';
 import { useRouter } from 'next/navigation';
 import useEvent from '@/app/hooks/useEvent';
 import download from '../server/ClientDownloader';
@@ -86,7 +86,9 @@ function Header(props: Props) {
 
   const deleteFilesFromServerHandler = useEvent(async () => {
     try {
-      await deleteFilesFromServer(fSelectedImagesId);
+      const isDeleteFile = pathname === '/trash';
+      console.log('isDeleteFile', isDeleteFile);
+      await deleteFilesFromServer(fSelectedImagesId, isDeleteFile);
       router.refresh();
     } catch (e) {}
   });
@@ -379,7 +381,7 @@ function Header(props: Props) {
                   router.refresh();
                 }}
               >
-                Move
+                Copy
               </Button>
               <Button
                 color="gray"

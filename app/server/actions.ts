@@ -235,25 +235,36 @@ export async function addFolderToServer(folder: string) {
 }
 
 // arrOfFilenamesWithoutParam = [folder, filename][]
-export async function deleteFilesFromServer(arrOfFilenamesWithoutParam: [string, string][]) {
+export async function deleteFilesFromServer(
+  arrOfFilenamesWithoutParam: [string, string][],
+  deleteFile: boolean = false
+) {
   for (let i = 0; arrOfFilenamesWithoutParam.length > i; i++) {
     const [folder, filenameWithoutParam] = arrOfFilenamesWithoutParam[i];
-    const filename = await FilenameHandler.getFileFromFolder(folder, filenameWithoutParam);
-    if (filename) {
-      const baseFolder = folder !== '' ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
-      const fullFilePath = path.join(baseFolder, filename);
 
-      // thumb folder + filename
-      const fullThumbPath = path.join(THUMBS_ROOT_PATH, filename);
-      fs.mkdirSync(DELETED_IMAGES_PATH, { recursive: true });
-      const deletedFullPath = path.join(DELETED_IMAGES_PATH, basename(fullFilePath));
-      if (fs.existsSync(fullFilePath)) {
-        fs.renameSync(fullFilePath, deletedFullPath);
+    // Permanently delete image
+    if (deleteFile) {
+      const filename = await FilenameHandler.getDeletedFileFromServer(filenameWithoutParam);
+      if (filename) {
+        const baseFolder = DELETED_IMAGES_PATH;
+        const fullFilePath = path.join(baseFolder, filename);
+        if (fs.existsSync(fullFilePath)) {
+          fs.unlinkSync(fullFilePath);
+        }
       }
-      // TODO: delete images
-      // if (fs.existsSync(fullThumbPath)) {
-      //   fs.unlinkSync(fullThumbPath);
-      // }
+    }
+    // Move to trash folder
+    else {
+      const filename = await FilenameHandler.getFileFromFolder(folder, filenameWithoutParam);
+      if (filename) {
+        const baseFolder = folder !== '' ? path.join(GALLERY_ROOT_PATH, folder) : GALLERY_ROOT_PATH;
+        const fullFilePath = path.join(baseFolder, filename);
+        fs.mkdirSync(DELETED_IMAGES_PATH, { recursive: true });
+        if (fs.existsSync(fullFilePath)) {
+          const deletedFullPath = path.join(DELETED_IMAGES_PATH, basename(fullFilePath));
+          fs.renameSync(fullFilePath, deletedFullPath);
+        }
+      }
     }
   }
 }

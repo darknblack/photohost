@@ -5,7 +5,7 @@ import { Button, Modal, TextInput } from 'flowbite-react';
 import { useState, useTransition } from 'react';
 import cx from 'clsx';
 import useEvent from '@/app/hooks/useEvent';
-import { addFolderToServer, getImages, getStarredImages, uploadImageOnServer } from '@/app/gallery/actions';
+import { addFolderToServer, getImages, getStarredImages, uploadImageOnServer } from '@/app/server/actions';
 import { useRouter } from 'next/navigation';
 import Thumb from './Thumb';
 import Sidebar from './Sidebar';
