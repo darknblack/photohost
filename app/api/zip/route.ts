@@ -17,7 +17,8 @@ export async function GET(req: NextRequest) {
     const headers = {
       headers: {
         'Content-Type': 'application/zip',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+        // TODO: set this to 3600 in production
+        'Cache-Control': 'public, max-age=0, s-maxage=0',
         'Content-Disposition': `attachment; filename=${filename}`,
       },
     };
