@@ -53,11 +53,7 @@ function Sidebar(props: Props) {
           </div>
         </div>
         <div className="flex flex-col gap-3">
-          <Link
-            href={{ pathname: '/gallery', query: { starred: '1' } }}
-            as={{ pathname: '/gallery', query: { starred: '1' } }}
-            className="flex gap-2"
-          >
+          <Link href={{ pathname: '/starred' }} as={{ pathname: '/starred' }} className="flex gap-2">
             <StarIcon className="text-neutral-300 w-5" />
             <h3 className="text-sm text-neutral-300">Starred</h3>
           </Link>

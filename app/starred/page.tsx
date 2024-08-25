@@ -1,5 +1,5 @@
 import GalleryPage from '@/app/components/GalleryPage';
-import { getAllFolders, getImages } from '@/app/gallery/actions';
+import { getAllFolders, getStarredImages } from '@/app/gallery/actions';
 
 type searchParams = {
   [key: string]: string | string[] | undefined;
@@ -7,18 +7,10 @@ type searchParams = {
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home({ searchParams }: { searchParams?: searchParams }) {
-  const activeFolder = (((searchParams && searchParams['folder']) ?? '') as string) || '';
+export default async function Trash({ searchParams }: { searchParams?: searchParams }) {
   let activePage: string | number = ((searchParams && searchParams['page']) ?? '') as string;
-  const isStarredOnly: boolean = !!(((searchParams && searchParams['starred']) ?? '') as string);
-
   activePage = !activePage ? 1 : activePage;
-
-  const images = await getImages({
-    page: Number(activePage),
-    folder: activeFolder,
-    isGallery: true,
-  });
+  const images = await getStarredImages({ page: Number(activePage) });
 
   if (images === undefined) {
     return <div>Something went wrong</div>;
@@ -32,8 +24,8 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
         key={new Date().getTime()}
         images={images}
         folders={folders}
-        activeFolder={activeFolder}
-        isStarredOnly={isStarredOnly}
+        activeFolder={''}
+        isStarredOnly={true}
         cPage={activePage as number}
       />
     </div>
