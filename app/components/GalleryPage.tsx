@@ -119,7 +119,12 @@ const GalleryPage = (props: Props) => {
 
         const res = isStarredOnly
           ? await getStarredImages({ page: newPage })
-          : await getImages({ page: newPage, folder: activeFolder, isGallery: true });
+          : await getImages({
+              page: newPage,
+              folder: activeFolder,
+              isGallery: pathname === '/gallery',
+              isTrash: pathname === '/trash',
+            });
 
         if (res) {
           const newImages = [...state.images, ...res.images];
