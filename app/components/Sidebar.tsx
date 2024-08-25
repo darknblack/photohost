@@ -30,7 +30,12 @@ function Sidebar(props: Props) {
           </Link>
           <div className="py-2 flex flex-col px-0.5">
             {folders.map(folder => (
-              <div key={folder.name} className=" border-l border-l-neutral-700 flex justify-between">
+              <div
+                key={folder.name}
+                className={cx('border-l border-l-neutral-900 flex justify-between', {
+                  '!border-l-neutral-700': folder.name === activeFolder,
+                })}
+              >
                 <div className="flex gap-2 px-3 py-1">
                   <FolderIcon
                     className={cx('text-neutral-500 w-5 h-5 shrink-0', {
