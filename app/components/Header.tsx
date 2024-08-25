@@ -11,6 +11,7 @@ import {
   CheckIcon,
   XMarkIcon,
   ArrowDownTrayIcon,
+  DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
 import { Button, FileInput, Modal, TextInput, Select } from 'flowbite-react';
 import cx from 'clsx';
@@ -18,6 +19,7 @@ import { Breadcrumb } from 'flowbite-react';
 import Link from 'next/link';
 import { memo, useRef, useState } from 'react';
 import {
+  copyFilesFromServer,
   deleteFilesFromServer,
   deleteZipFile,
   moveFilesFromServer,
@@ -65,6 +67,7 @@ function Header(props: Props) {
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+  const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
   const [formAddFolderName, setFormAddFolderName] = useState(activeFolder);
 
   const rElDestinationFolder = useRef<any>();
@@ -182,6 +185,16 @@ function Header(props: Props) {
           disabled={selectedImagesId.length === 0 || folders.length === 0}
           className="bg-transparent border border-neutral-400"
           onClick={() => {
+            setIsCopyModalOpen(true);
+          }}
+        >
+          <DocumentDuplicateIcon className="w-5 text-neutral-200" />
+        </Button>
+        <Button
+          size="xs"
+          disabled={selectedImagesId.length === 0 || folders.length === 0}
+          className="bg-transparent border border-neutral-400"
+          onClick={() => {
             setIsMoveModalOpen(true);
           }}
         >
@@ -259,6 +272,8 @@ function Header(props: Props) {
           <span className="text-neutral-200 text-xs relative top-0.5"></span>
         </Button>
       </div>
+
+      {/* RENAME MODAL */}
       <Modal show={isRenameModalOpen} size="md" popup dismissible onClose={() => setIsRenameModalOpen(false)}>
         <Modal.Header />
         <Modal.Body>
@@ -299,6 +314,8 @@ function Header(props: Props) {
           </div>
         </Modal.Body>
       </Modal>
+
+      {/* DELETE MODAL */}
       <Modal show={isDeleteModalOpen} size="md" popup dismissible onClose={() => setIsDeleteModalOpen(false)}>
         <Modal.Header />
         <Modal.Body>
@@ -332,6 +349,52 @@ function Header(props: Props) {
           </div>
         </Modal.Body>
       </Modal>
+
+      {/* COPY MODAL */}
+      <Modal show={isCopyModalOpen} size="md" popup dismissible onClose={() => setIsCopyModalOpen(false)}>
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <DocumentDuplicateIcon className="text-neutral-500 w-14 mx-auto" />
+            <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">
+              Select the destination folder
+            </h3>
+            <Select ref={rElDestinationFolder}>
+              {<option value="">Select a folder</option>}
+              {(activeFolder || isStarredOnly) && <option value={'/'}>/ (Root Directory)</option>}
+              {folders.map(folder => (
+                <option key={folder.name} value={folder.name} disabled={folder.name === activeFolder && !isStarredOnly}>
+                  {folder.name}
+                </option>
+              ))}
+            </Select>
+
+            <div className="flex justify-center gap-4 mt-6">
+              <Button
+                onClick={async () => {
+                  const value = rElDestinationFolder.current?.value;
+                  if (!value) return;
+
+                  await copyFilesFromServer(value, fSelectedImagesId);
+                  router.refresh();
+                }}
+              >
+                Move
+              </Button>
+              <Button
+                color="gray"
+                onClick={() => {
+                  setIsCopyModalOpen(false);
+                }}
+              >
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* MOVE MODAL */}
       <Modal show={isMoveModalOpen} size="md" popup dismissible onClose={() => setIsMoveModalOpen(false)}>
         <Modal.Header />
         <Modal.Body>

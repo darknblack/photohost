@@ -271,6 +271,29 @@ export async function deleteFoldersFromServer(folders: string[]) {
 }
 
 // arrOfFilenamesWithoutParam = [folder, filename][]
+export async function copyFilesFromServer(nFolder: string, arrOfFilenamesWithoutParam: [string, string][]) {
+  const baseNewPath = nFolder ? path.join(GALLERY_ROOT_PATH, nFolder) : GALLERY_ROOT_PATH;
+
+  if (!fs.existsSync(baseNewPath)) {
+    fs.mkdirSync(baseNewPath, { recursive: true });
+  }
+
+  for (let i = 0; arrOfFilenamesWithoutParam.length > i; i++) {
+    const [cFolder, filenameWithoutParam] = arrOfFilenamesWithoutParam[i];
+    const baseCurrentPath = cFolder !== '' ? path.join(GALLERY_ROOT_PATH, cFolder) : GALLERY_ROOT_PATH;
+    const filename = await FilenameHandler.getFileFromFolder(cFolder, filenameWithoutParam);
+    if (filename) {
+      const currentFile = path.join(baseCurrentPath, filename);
+      const newFile = path.join(baseNewPath, filename);
+
+      if (fs.existsSync(currentFile)) {
+        fs.copyFileSync(currentFile, newFile);
+      }
+    }
+  }
+}
+
+// arrOfFilenamesWithoutParam = [folder, filename][]
 export async function moveFilesFromServer(nFolder: string, arrOfFilenamesWithoutParam: [string, string][]) {
   const baseNewPath = nFolder ? path.join(GALLERY_ROOT_PATH, nFolder) : GALLERY_ROOT_PATH;
 
