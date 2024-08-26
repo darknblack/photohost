@@ -94,7 +94,7 @@ function Header(props: Props) {
   });
 
   return (
-    <div id="header" className="px-4 py-2 grid grid-cols-3">
+    <div id="header" className="px-6 py-6 grid grid-cols-3">
       <div className="flex gap-2">
         <Breadcrumb className="bg-neutral-900 px-3 rounded min-w-[24rem] py-2">
           <Breadcrumb.Item>

@@ -1,6 +1,6 @@
 import { FolderIcon, StarIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { getSpace } from './server/actions';
+import { getDiskSpace } from './server/actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +17,7 @@ function formatBytes(bytes: number, decimals = 2) {
 }
 
 export default async function Home() {
-  const diskSpace = await getSpace();
+  const diskSpace = await getDiskSpace();
 
   return (
     <div className="flex items-center justify-center min-w-[100vw] min-h-[100vh]">

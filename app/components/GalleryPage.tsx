@@ -143,7 +143,7 @@ const GalleryPage = (props: Props) => {
     <>
       <div className="flex bg-neutral-900">
         <Sidebar folders={folders} activeFolder={activeFolder} />
-        <div id="main-content" className="flex-1 p-2">
+        <div id="main-content" className="flex flex-col flex-1">
           <Header
             state={state}
             changeState={changeState}
@@ -157,7 +157,7 @@ const GalleryPage = (props: Props) => {
             isStarredOnly={isStarredOnly}
             pathname={pathname}
           />
-          <div>
+          <div className="flex-1 px-4">
             <div
               className={cx('grid px-4 py-5', {
                 'grid-cols-3 gap-4': state.isListView,
@@ -194,6 +194,7 @@ const GalleryPage = (props: Props) => {
               {isPendingNewImages ? '' : <InfiniteScrollTriggerPoint cb={onInfiniteScrollTriggerPoint} />}
             </div>
           </div>
+          <div className="bg-zinc-950 px-2 py-0.5 text-neutral-400 text-sm hidden">sad</div>
         </div>
       </div>
       <Modal

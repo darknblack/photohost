@@ -403,6 +403,6 @@ async function extractImageAndFolder(url: string) {
   return [image, folder];
 }
 
-export async function getSpace() {
+export async function getDiskSpace() {
   return checkDiskSpace(path.resolve(__dirname));
 }
