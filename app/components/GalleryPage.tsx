@@ -163,7 +163,12 @@ const GalleryPage = (props: Props) => {
           isSidebarOpen={state.isSidebarOpen}
           toggleSidebar={toggleSidebar}
         />
-        <div id="main-content" className="flex flex-col flex-1 ">
+        <div
+          id="main-content"
+          className={cx('flex flex-col flex-1 transition-all', {
+            'md:pl-72': state.isSidebarOpen,
+          })}
+        >
           <Header
             state={state}
             changeState={changeState}
@@ -182,7 +187,7 @@ const GalleryPage = (props: Props) => {
             <div
               className={cx('grid px-4 py-5', {
                 'grid-cols-3 gap-4': state.isListView,
-                'lg:grid-cols-8 md:grid-cols-6 sm:grid-cols-2 gap-2': !state.isListView,
+                'lg:grid-cols-8 md:grid-cols-6 sm:grid-cols-2 grid-cols-2 gap-2': !state.isListView,
               })}
             >
               {activeFolder === '' &&

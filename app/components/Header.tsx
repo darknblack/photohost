@@ -97,13 +97,13 @@ function Header(props: Props) {
   });
 
   return (
-    <div id="header" className="px-4 pt-5 grid grid-cols-3">
+    <div id="header" className="px-4 pt-5 md:grid-cols-3 grid grid-cols-1 md:gap-0 gap-2">
       <div className="flex">
         <button className="flex items-center justify-center mr-3" onClick={toggleSidebar}>
           <Bars3Icon className="w-6 h-6 text-neutral-300" />
         </button>
         <div className="flex gap-2 items-center">
-          <Breadcrumb className="bg-neutral-900 px-3 rounded min-w-[24rem]">
+          <Breadcrumb className="bg-neutral-900 px-3 rounded">
             <Breadcrumb.Item>
               {pathname === '/trash' ? (
                 <Link href={{ pathname: '/trash' }} className="text-neutral-200">
@@ -139,7 +139,7 @@ function Header(props: Props) {
           </Breadcrumb>
         </div>
       </div>
-      <div className="flex gap-2 items-center justify-center">
+      <div className="flex gap-2 md:justify-center">
         <Button
           size="xs"
           className="bg-transparent py-1 border border-neutral-400 min-w-[6.8rem]"
@@ -223,7 +223,7 @@ function Header(props: Props) {
           </Button>
         </div>
       </div>
-      <div className="flex gap-2 justify-end">
+      <div className="flex gap-1 md:justify-end">
         <div className="flex items-center justify-center">
           <Button
             size="xs"

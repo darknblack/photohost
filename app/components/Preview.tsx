@@ -96,7 +96,7 @@ function Preview(props: Props) {
   return (
     <div
       className={cx(
-        'flex flex-col fixed left-0 top-0 right-0 bottom-0 bg-black bg-opacity-70 backdrop-blur animate-backdrop-blur select-none'
+        'flex flex-col justify-center fixed left-0 top-0 right-0 bottom-0 bg-black bg-opacity-70 backdrop-blur animate-backdrop-blur select-none'
       )}
     >
       <div className="h-full flex flex-col gap-2">
@@ -104,7 +104,7 @@ function Preview(props: Props) {
           className="w-full flex-1 h-0 flex justify-center items-center cursor-pointer !pointer-events-auto pt-2"
           onClick={onWhiteSpaceClick}
         >
-          <div className="h-full relative pointer-events-none flex items-center justify-center">
+          <div className="h-full relative pointer-events-none flex items-center justify-center px-2">
             <img src={activeImageUrl} className="max-h-full cursor-default button-w-action" />
             <div className="absolute flex top-0 left-0 pt-2 px-2 justify-end w-full">
               <div className="flex gap-1.5">
