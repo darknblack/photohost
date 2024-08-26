@@ -99,7 +99,7 @@ function Header(props: Props) {
   return (
     <div id="header" className="px-4 pt-5 md:grid-cols-3 grid grid-cols-1 md:gap-0 gap-2">
       <div className="flex">
-        <button className="flex items-center justify-center mr-3" onClick={toggleSidebar}>
+        <button className="flex items-center justify-center mr-1.5" onClick={toggleSidebar}>
           <Bars3Icon className="w-6 h-6 text-neutral-300" />
         </button>
         <div className="flex gap-2 items-center">
