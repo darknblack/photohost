@@ -17,18 +17,22 @@
     "clsx": "^2.1.0",
     "flowbite-react": "^0.9.0",
     "hash-wasm": "^4.11.0",
+    "js-cookie": "^3.0.5",
     "next": "14.2.1",
     "react": "^18",
     "react-dom": "^18",
     "react-intersection-observer": "^9.8.2",
     "sharp": "^0.32.6",
+    "ua-parser-js": "^1.0.38",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/archiver": "^6.0.2",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/ua-parser-js": "^0.7.39",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"

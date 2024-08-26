@@ -1,6 +1,5 @@
 import GalleryPage from '@/app/components/GalleryPage';
-import { getAllFolders, getImages } from '@/app/server/actions';
-import { cookies } from 'next/headers';
+import { getAllFolders, getImages, getServerSidebarState, isMobileDevice } from '@/app/server/actions';
 
 type searchParams = {
   [key: string]: string | string[] | undefined;
@@ -12,8 +11,6 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
   const activeFolder = (((searchParams && searchParams['folder']) ?? '') as string) || '';
   let activePage: string | number = ((searchParams && searchParams['page']) ?? '') as string;
   const isStarredOnly: boolean = !!(((searchParams && searchParams['starred']) ?? '') as string);
-  const cookie = cookies();
-  const token = cookie.get('sidebar')?.value || true;
 
   activePage = !activePage ? 1 : activePage;
 
@@ -28,9 +25,11 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
   }
 
   const folders = await getAllFolders();
+  const _isMobileDevice = await isMobileDevice();
+  const isSidebarOpen = await getServerSidebarState();
 
   return (
-    <div>
+    <>
       <GalleryPage
         key={new Date().getTime()}
         images={images}
@@ -38,7 +37,9 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
         activeFolder={activeFolder}
         isStarredOnly={isStarredOnly}
         cPage={activePage as number}
+        isMobileDevice={_isMobileDevice}
+        isSidebarOpen={isSidebarOpen}
       />
-    </div>
+    </>
   );
 }

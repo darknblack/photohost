@@ -29,6 +29,9 @@ dependencies:
   hash-wasm:
     specifier: ^4.11.0
     version: 4.11.0
+  js-cookie:
+    specifier: ^3.0.5
+    version: 3.0.5
   next:
     specifier: 14.2.1
     version: 14.2.1(react-dom@18.3.1)(react@18.3.1)
@@ -44,6 +47,9 @@ dependencies:
   sharp:
     specifier: ^0.32.6
     version: 0.32.6
+  ua-parser-js:
+    specifier: ^1.0.38
+    version: 1.0.38
   zustand:
     specifier: ^4.5.2
     version: 4.5.5(@types/react@18.3.3)(react@18.3.1)
@@ -52,6 +58,9 @@ devDependencies:
   '@types/archiver':
     specifier: ^6.0.2
     version: 6.0.2
+  '@types/js-cookie':
+    specifier: ^3.0.6
+    version: 3.0.6
   '@types/node':
     specifier: ^20
     version: 20.15.0
@@ -61,6 +70,9 @@ devDependencies:
   '@types/react-dom':
     specifier: ^18
     version: 18.3.0
+  '@types/ua-parser-js':
+    specifier: ^0.7.39
+    version: 0.7.39
   postcss:
     specifier: ^8
     version: 8.4.41
@@ -299,6 +311,10 @@ packages:
       '@types/readdir-glob': 1.1.5
     dev: true
 
+  /@types/js-cookie@3.0.6:
+    resolution: {integrity: sha512-wkw9yd1kEXOPnvEeEV1Go1MmxtBJL0RR79aOTAApecWFVu7w0NNXNqhcWgvw2YgZDYadliXkl14pa3WXw5jlCQ==}
+    dev: true
+
   /@types/node@20.15.0:
     resolution: {integrity: sha512-eQf4OkH6gA9v1W0iEpht/neozCsZKMTK+C4cU6/fv7wtJCCL8LEQ4hie2Ln8ZP/0YYM2xGj7//f8xyqItkJ6QA==}
     dependencies:
@@ -324,6 +340,10 @@ packages:
     resolution: {integrity: sha512-raiuEPUYqXu+nvtY2Pe8s8FEmZ3x5yAH4VkLdihcPdalvsHltomrRC9BzuStrJ9yk06470hS0Crw0f1pXqD+Hg==}
     dependencies:
       '@types/node': 20.15.0
+    dev: true
+
+  /@types/ua-parser-js@0.7.39:
+    resolution: {integrity: sha512-P/oDfpofrdtF5xw433SPALpdSchtJmY7nsJItf8h3KXqOslkbySh8zq4dSWXH2oTjRvJ5PczVEoCZPow6GicLg==}
     dev: true
 
   /abort-controller@3.0.0:
@@ -893,6 +913,11 @@ packages:
   /jiti@1.21.6:
     resolution: {integrity: sha512-2yTgeWTWzMWkHu6Jp9NKgePDaYHbntiwvYuuJLbbN9vl7DC9DvXKOB2BC3ZZ92D3cvV/aflH0osDfwpHepQ53w==}
     hasBin: true
+
+  /js-cookie@3.0.5:
+    resolution: {integrity: sha512-cEiJEAEoIbWfCZYKWhVwFuvPX1gETRYPw6LlaTKoxD3s2AkXzkCjnp6h0V77ozyqj0jakteJ4YqDJT830+lVGw==}
+    engines: {node: '>=14'}
+    dev: false
 
   /js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -1627,6 +1652,10 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
     dev: true
+
+  /ua-parser-js@1.0.38:
+    resolution: {integrity: sha512-Aq5ppTOfvrCMgAPneW1HfWj66Xi7XL+/mIy996R1/CLS/rcyJQm6QZdsKrUeivDFQ+Oc9Wyuwor8Ze8peEoUoQ==}
+    dev: false
 
   /undici-types@6.13.0:
     resolution: {integrity: sha512-xtFJHudx8S2DSoujjMd1WeWvn7KKWFRESZTMeL1RptAYERu29D6jphMjjY+vn96jvN3kVPDNxU/E13VTaXj6jg==}

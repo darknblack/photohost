@@ -17,6 +17,8 @@ import FilenameHandler from '@/app/server/FilenameHandler';
 import archiver from 'archiver';
 import checkDiskSpace from 'check-disk-space';
 import { cookies } from 'next/headers';
+import { UAParser } from 'ua-parser-js';
+import { headers } from 'next/headers';
 
 interface GetImagesProps {
   folder?: string;
@@ -406,4 +408,37 @@ async function extractImageAndFolder(url: string) {
 
 export async function getDiskSpace() {
   return checkDiskSpace(path.resolve(__dirname));
+}
+
+export async function getServerSidebarState() {
+  const cookie = cookies().get('sidebar');
+
+  if (cookie) {
+    if (cookie.value === 'open') {
+      return true;
+    }
+  }
+
+  if (!cookie && (await isMobileDevice())) {
+    changeServerSidebarCookie('closed');
+    return false;
+  }
+
+  return false;
+}
+
+export async function changeServerSidebarCookie(value: 'open' | 'closed') {
+  cookies().set('sidebar', value);
+}
+
+export async function isMobileDevice() {
+  if (typeof process === 'undefined') {
+    throw new Error('[Server method] you are importing a server-only module outside of server');
+  }
+
+  const { get } = headers();
+  const ua = get('user-agent');
+
+  const device = new UAParser(ua || '').getDevice();
+  return device.type === 'mobile';
 }

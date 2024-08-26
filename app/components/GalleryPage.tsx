@@ -14,6 +14,8 @@ import Link from 'next/link';
 import Preview from './Preview';
 import InfiniteScrollTriggerPoint from './InfiniteScrollTriggerPoint';
 import { usePathname } from 'next/navigation';
+import clientCookies from 'js-cookie';
+
 interface Props {
   images: {
     images: Image[];
@@ -23,17 +25,17 @@ interface Props {
   activeFolder: string;
   isStarredOnly: boolean;
   cPage: number;
+  isMobileDevice: boolean;
+  isSidebarOpen: boolean;
 }
 
 const GalleryPage = (props: Props) => {
-  const { folders, activeFolder, isStarredOnly, cPage } = props;
+  const { folders, activeFolder, isStarredOnly, cPage, isSidebarOpen } = props;
 
   const [selectedImagesId, setSelectedImagesId] = useState<string[]>([]);
   const [isPendingNewImages, startFetchingNewImages] = useTransition();
   const router = useRouter();
   const pathname = usePathname();
-
-  const sSidebar = sessionStorage.getItem('sidebar');
 
   const [state, setState] = useState({
     isListView: false,
@@ -43,7 +45,7 @@ const GalleryPage = (props: Props) => {
     cPage: cPage,
     images: props.images.images,
     total: props.images.total,
-    isSidebarOpen: sSidebar !== null ? JSON.parse(sSidebar) : true,
+    isSidebarOpen: isSidebarOpen,
   });
 
   const changeState = useEvent((newState: Partial<typeof state>) => {
@@ -142,15 +144,14 @@ const GalleryPage = (props: Props) => {
     }
   });
 
-  const toggleSidebar = useEvent(() => {
-    setState(prev => {
-      sessionStorage.setItem('sidebar', !prev.isSidebarOpen ? 'true' : 'false');
-
-      return {
-        ...prev,
-        isSidebarOpen: !prev.isSidebarOpen,
-      };
+  const toggleSidebar = useEvent(async () => {
+    const newState = !state.isSidebarOpen;
+    setState({
+      ...state,
+      isSidebarOpen: newState,
     });
+
+    clientCookies.set('sidebar', newState ? 'open' : 'closed');
   });
 
   return (
@@ -181,7 +182,7 @@ const GalleryPage = (props: Props) => {
             <div
               className={cx('grid px-4 py-5', {
                 'grid-cols-3 gap-4': state.isListView,
-                'grid-cols-8 gap-2': !state.isListView,
+                'lg:grid-cols-8 md:grid-cols-6 sm:grid-cols-2 gap-2': !state.isListView,
               })}
             >
               {activeFolder === '' &&

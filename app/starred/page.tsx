@@ -1,5 +1,5 @@
 import GalleryPage from '@/app/components/GalleryPage';
-import { getAllFolders, getStarredImages } from '@/app/server/actions';
+import { getAllFolders, getServerSidebarState, getStarredImages, isMobileDevice } from '@/app/server/actions';
 
 type searchParams = {
   [key: string]: string | string[] | undefined;
@@ -17,9 +17,11 @@ export default async function Trash({ searchParams }: { searchParams?: searchPar
   }
 
   const folders = await getAllFolders();
+  const _isMobileDevice = await isMobileDevice();
+  const isSidebarOpen = await getServerSidebarState();
 
   return (
-    <div>
+    <>
       <GalleryPage
         key={new Date().getTime()}
         images={images}
@@ -27,7 +29,9 @@ export default async function Trash({ searchParams }: { searchParams?: searchPar
         activeFolder={''}
         isStarredOnly={true}
         cPage={activePage as number}
+        isMobileDevice={_isMobileDevice}
+        isSidebarOpen={isSidebarOpen}
       />
-    </div>
+    </>
   );
 }

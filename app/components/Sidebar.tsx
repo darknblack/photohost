@@ -18,8 +18,8 @@ function Sidebar(props: Props) {
   return (
     <div
       id="sidebar"
-      className={cx(' bg-neutral-950 transition-all', {
-        '!w-0 px-0 overflow-hidden': !isSidebarOpen,
+      className={cx('bg-neutral-950 transition-all', {
+        'w-0 px-0 overflow-hidden': !isSidebarOpen,
         'w-72 px-5': isSidebarOpen,
       })}
     >
