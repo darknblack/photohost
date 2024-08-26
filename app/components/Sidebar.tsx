@@ -14,7 +14,7 @@ function Sidebar(props: Props) {
   const { folders, activeFolder } = props;
 
   return (
-    <div id="sidebar" className="min-h-screen w-64 bg-neutral-950 px-5">
+    <div id="sidebar" className="min-h-screen w-72 bg-neutral-950 px-5">
       <Link href={{ pathname: '/' }} as={{ pathname: '/' }} className="block py-6 font-[600] text-zinc-200 text-lg">
         Photohost.io
       </Link>

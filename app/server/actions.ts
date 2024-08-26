@@ -15,6 +15,7 @@ import path, { basename } from 'path';
 import sharp from 'sharp';
 import FilenameHandler from '@/app/server/FilenameHandler';
 import archiver from 'archiver';
+import checkDiskSpace from 'check-disk-space';
 
 interface GetImagesProps {
   folder?: string;
@@ -400,4 +401,8 @@ async function extractImageAndFolder(url: string) {
   const image = urlParams.get('image') || '';
   const folder = urlParams.get('folder') || '';
   return [image, folder];
+}
+
+export async function getSpace() {
+  return checkDiskSpace(path.resolve(__dirname));
 }

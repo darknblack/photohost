@@ -14,6 +14,9 @@ dependencies:
   axios:
     specifier: ^1.6.8
     version: 1.7.4
+  check-disk-space:
+    specifier: ^3.4.0
+    version: 3.4.0
   chokidar:
     specifier: ^3.6.0
     version: 3.6.0
@@ -509,6 +512,11 @@ packages:
 
   /caniuse-lite@1.0.30001651:
     resolution: {integrity: sha512-9Cf+Xv1jJNe1xPZLGuUXLNkE1BoDkqRqYyFJ9TDYSqhduqA4hu4oR9HluGoWYQC/aj8WHjsGVV+bwkh0+tegRg==}
+    dev: false
+
+  /check-disk-space@3.4.0:
+    resolution: {integrity: sha512-drVkSqfwA+TvuEhFipiR1OC9boEGZL5RrWvVsOthdcvQNXyCCuKkEiTOTXZ7qxSf/GLwq4GvzfrQD/Wz325hgw==}
+    engines: {node: '>=16'}
     dev: false
 
   /chokidar@3.6.0:

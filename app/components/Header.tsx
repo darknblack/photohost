@@ -72,6 +72,8 @@ function Header(props: Props) {
 
   const rElDestinationFolder = useRef<any>();
 
+  const isTrash = pathname === '/trash';
+
   const fSelectedImagesId: [string, string][] = selectedImagesId
     .filter(item => item)
     .map(item => {
@@ -86,9 +88,7 @@ function Header(props: Props) {
 
   const deleteFilesFromServerHandler = useEvent(async () => {
     try {
-      const isDeleteFile = pathname === '/trash';
-      console.log('isDeleteFile', isDeleteFile);
-      await deleteFilesFromServer(fSelectedImagesId, isDeleteFile);
+      await deleteFilesFromServer(fSelectedImagesId, isTrash);
       router.refresh();
     } catch (e) {}
   });
@@ -150,68 +150,70 @@ function Header(props: Props) {
             </>
           )}
         </Button>
-        <Button
-          size="xs"
-          disabled={selectedImagesId.length === 0}
-          className="bg-transparent border border-neutral-400"
-          onClick={async () => {
-            // Download single image
-            if (selectedImagesId.length === 1) {
-              download(selectedImagesId[0]);
-              return;
-            }
+        <div className="flex gap-1">
+          <Button
+            size="xs"
+            disabled={selectedImagesId.length === 0}
+            className="bg-transparent border border-neutral-400"
+            onClick={async () => {
+              // Download single image
+              if (selectedImagesId.length === 1) {
+                download(selectedImagesId[0]);
+                return;
+              }
 
-            // Download multiple images
-            let zipFilename = '';
-            try {
-              zipFilename = await zipFile(selectedImagesId);
-              const res = await fetch(`api/zip?filename=${zipFilename}`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/zip' },
-              });
-              const blob = await res.blob();
-              const clientDownloadFilename = `photohost-${zipFilename.split('.')[0]}-${
-                selectedImagesId.length
-              }-files.zip`;
-              download(URL.createObjectURL(blob), clientDownloadFilename);
-            } catch (e) {
-            } finally {
-              await deleteZipFile(zipFilename);
-            }
-          }}
-        >
-          <ArrowDownTrayIcon className="w-5 text-neutral-200" />
-        </Button>
-        <Button
-          size="xs"
-          disabled={selectedImagesId.length === 0 || folders.length === 0}
-          className="bg-transparent border border-neutral-400"
-          onClick={() => {
-            setIsCopyModalOpen(true);
-          }}
-        >
-          <DocumentDuplicateIcon className="w-5 text-neutral-200" />
-        </Button>
-        <Button
-          size="xs"
-          disabled={selectedImagesId.length === 0 || folders.length === 0}
-          className="bg-transparent border border-neutral-400"
-          onClick={() => {
-            setIsMoveModalOpen(true);
-          }}
-        >
-          <ArrowRightStartOnRectangleIcon className="w-5 text-neutral-200" />
-        </Button>
-        <Button
-          size="xs"
-          disabled={selectedImagesId.length === 0}
-          className="bg-transparent py-0.5 border border-neutral-400"
-          onClick={() => {
-            setIsDeleteModalOpen(true);
-          }}
-        >
-          <TrashIcon className="w-5 text-neutral-200" />
-        </Button>
+              // Download multiple images
+              let zipFilename = '';
+              try {
+                zipFilename = await zipFile(selectedImagesId);
+                const res = await fetch(`api/zip?filename=${zipFilename}`, {
+                  method: 'GET',
+                  headers: { 'Content-Type': 'application/zip' },
+                });
+                const blob = await res.blob();
+                const clientDownloadFilename = `photohost-${zipFilename.split('.')[0]}-${
+                  selectedImagesId.length
+                }-files.zip`;
+                download(URL.createObjectURL(blob), clientDownloadFilename);
+              } catch (e) {
+              } finally {
+                await deleteZipFile(zipFilename);
+              }
+            }}
+          >
+            <ArrowDownTrayIcon className="w-5 text-neutral-200" />
+          </Button>
+          <Button
+            size="xs"
+            disabled={selectedImagesId.length === 0 || folders.length === 0}
+            className="bg-transparent border border-neutral-400"
+            onClick={() => {
+              setIsCopyModalOpen(true);
+            }}
+          >
+            <DocumentDuplicateIcon className="w-5 text-neutral-200" />
+          </Button>
+          <Button
+            size="xs"
+            disabled={selectedImagesId.length === 0 || folders.length === 0}
+            className="bg-transparent border border-neutral-400"
+            onClick={() => {
+              setIsMoveModalOpen(true);
+            }}
+          >
+            <ArrowRightStartOnRectangleIcon className="w-5 text-neutral-200" />
+          </Button>
+          <Button
+            size="xs"
+            disabled={selectedImagesId.length === 0}
+            className="bg-transparent border border-neutral-400 py-0.5"
+            onClick={() => {
+              setIsDeleteModalOpen(true);
+            }}
+          >
+            <TrashIcon className="w-5 text-neutral-200" />
+          </Button>
+        </div>
       </div>
       <div className="flex gap-2 justify-end">
         <div className="flex items-center justify-center">
@@ -325,8 +327,8 @@ function Header(props: Props) {
             <TrashIcon className="text-red-500 w-14 mx-auto" />
             <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">
               {fSelectedImagesId.length > 1
-                ? `Are you sure you want to delete ${fSelectedImagesId.length} images?`
-                : `Are you sure you want to delete this image?`}
+                ? `Are you sure you want to ${isTrash ? 'permanently' : ''} delete ${fSelectedImagesId.length} images?`
+                : `Are you sure you want to ${isTrash ? 'permanently' : ''} delete this image?`}
             </h3>
 
             <div className="flex justify-center gap-4 mt-6">
