@@ -16,6 +16,7 @@ import sharp from 'sharp';
 import FilenameHandler from '@/app/server/FilenameHandler';
 import archiver from 'archiver';
 import checkDiskSpace from 'check-disk-space';
+import { cookies } from 'next/headers';
 
 interface GetImagesProps {
   folder?: string;

@@ -33,6 +33,8 @@ const GalleryPage = (props: Props) => {
   const router = useRouter();
   const pathname = usePathname();
 
+  const sSidebar = sessionStorage.getItem('sidebar');
+
   const [state, setState] = useState({
     isListView: false,
     openAddFolder: false,
@@ -41,6 +43,7 @@ const GalleryPage = (props: Props) => {
     cPage: cPage,
     images: props.images.images,
     total: props.images.total,
+    isSidebarOpen: sSidebar !== null ? JSON.parse(sSidebar) : true,
   });
 
   const changeState = useEvent((newState: Partial<typeof state>) => {
@@ -139,11 +142,27 @@ const GalleryPage = (props: Props) => {
     }
   });
 
+  const toggleSidebar = useEvent(() => {
+    setState(prev => {
+      sessionStorage.setItem('sidebar', !prev.isSidebarOpen ? 'true' : 'false');
+
+      return {
+        ...prev,
+        isSidebarOpen: !prev.isSidebarOpen,
+      };
+    });
+  });
+
   return (
     <>
-      <div className="flex bg-neutral-900">
-        <Sidebar folders={folders} activeFolder={activeFolder} />
-        <div id="main-content" className="flex flex-col flex-1">
+      <div className="flex bg-neutral-900 min-h-[100vh]">
+        <Sidebar
+          folders={folders}
+          activeFolder={activeFolder}
+          isSidebarOpen={state.isSidebarOpen}
+          toggleSidebar={toggleSidebar}
+        />
+        <div id="main-content" className="flex flex-col flex-1 ">
           <Header
             state={state}
             changeState={changeState}
@@ -156,8 +175,9 @@ const GalleryPage = (props: Props) => {
             folders={folders}
             isStarredOnly={isStarredOnly}
             pathname={pathname}
+            toggleSidebar={toggleSidebar}
           />
-          <div className="flex-1 px-4">
+          <div className="flex-1">
             <div
               className={cx('grid px-4 py-5', {
                 'grid-cols-3 gap-4': state.isListView,

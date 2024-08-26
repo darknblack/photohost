@@ -28,6 +28,9 @@ const config: Config = {
       animation: {
         'backdrop-blur': 'backdrop-blur .2s ease',
       },
+      transitionProperty: {
+        width: 'width',
+      },
     },
   },
   plugins: [flowbite.plugin()],

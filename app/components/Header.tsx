@@ -12,6 +12,7 @@ import {
   XMarkIcon,
   ArrowDownTrayIcon,
   DocumentDuplicateIcon,
+  Bars3Icon,
 } from '@heroicons/react/24/outline';
 import { Button, FileInput, Modal, TextInput, Select } from 'flowbite-react';
 import cx from 'clsx';
@@ -47,6 +48,7 @@ interface Props {
   folders: Folder[];
   isStarredOnly: boolean;
   pathname: string;
+  toggleSidebar: () => void;
 }
 
 function Header(props: Props) {
@@ -62,6 +64,7 @@ function Header(props: Props) {
     folders,
     isStarredOnly,
     pathname,
+    toggleSidebar,
   } = props;
   const router = useRouter();
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
@@ -94,42 +97,47 @@ function Header(props: Props) {
   });
 
   return (
-    <div id="header" className="px-6 py-6 grid grid-cols-3">
-      <div className="flex gap-2">
-        <Breadcrumb className="bg-neutral-900 px-3 rounded min-w-[24rem] py-2">
-          <Breadcrumb.Item>
-            {pathname === '/trash' ? (
-              <Link href={{ pathname: '/trash' }} className="text-neutral-200">
-                Trash
+    <div id="header" className="px-4 pt-5 grid grid-cols-3">
+      <div className="flex">
+        <button className="flex items-center justify-center mr-3" onClick={toggleSidebar}>
+          <Bars3Icon className="w-6 h-6 text-neutral-300" />
+        </button>
+        <div className="flex gap-2 items-center">
+          <Breadcrumb className="bg-neutral-900 px-3 rounded min-w-[24rem]">
+            <Breadcrumb.Item>
+              {pathname === '/trash' ? (
+                <Link href={{ pathname: '/trash' }} className="text-neutral-200">
+                  Trash
+                </Link>
+              ) : isStarredOnly ? (
+                <Link href={{ pathname: '/gallery', query: { starred: '1' } }} className="text-neutral-200">
+                  Starred
+                </Link>
+              ) : (
+                <Link href={{ pathname: '/gallery', query: { folder: '' } }} className="text-neutral-200">
+                  Gallery
+                </Link>
+              )}
+            </Breadcrumb.Item>
+            <Breadcrumb.Item>
+              <Link href={{ pathname: '/gallery', query: { folder: activeFolder } }} className="text-neutral-200">
+                {activeFolder}
               </Link>
-            ) : isStarredOnly ? (
-              <Link href={{ pathname: '/gallery', query: { starred: '1' } }} className="text-neutral-200">
-                Starred
-              </Link>
-            ) : (
-              <Link href={{ pathname: '/gallery', query: { folder: '' } }} className="text-neutral-200">
-                Gallery
-              </Link>
-            )}
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>
-            <Link href={{ pathname: '/gallery', query: { folder: activeFolder } }} className="text-neutral-200">
-              {activeFolder}
-            </Link>
 
-            <button
-              className={cx('ml-2.5 hidden', {
-                '!block': activeFolder && activeFolder !== '',
-              })}
-              onClick={() => {
-                setFormAddFolderName(activeFolder);
-                setIsRenameModalOpen(true);
-              }}
-            >
-              <PencilIcon className={cx('w-4 text-neutral-500 hover:text-neutral-200')} />
-            </button>
-          </Breadcrumb.Item>
-        </Breadcrumb>
+              <button
+                className={cx('ml-2.5 hidden', {
+                  '!block': activeFolder && activeFolder !== '',
+                })}
+                onClick={() => {
+                  setFormAddFolderName(activeFolder);
+                  setIsRenameModalOpen(true);
+                }}
+              >
+                <PencilIcon className={cx('w-4 text-neutral-500 hover:text-neutral-200')} />
+              </button>
+            </Breadcrumb.Item>
+          </Breadcrumb>
+        </div>
       </div>
       <div className="flex gap-2 items-center justify-center">
         <Button
