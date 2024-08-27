@@ -1,6 +1,6 @@
 'use client';
 
-import { FolderIcon } from '@heroicons/react/24/outline';
+import { FolderIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { Button, Modal, TextInput } from 'flowbite-react';
 import { useState, useTransition } from 'react';
 import cx from 'clsx';
@@ -146,13 +146,13 @@ const GalleryPage = (props: Props) => {
 
   const toggleSidebar = useEvent(async () => {
     const newState = !state.isSidebarOpen;
+    clientCookies.set('sidebar', newState ? 'open' : 'closed');
+    router.refresh();
+
     setState({
       ...state,
       isSidebarOpen: newState,
     });
-
-    clientCookies.set('sidebar', newState ? 'open' : 'closed');
-    router.refresh();
   });
 
   return (
@@ -182,6 +182,7 @@ const GalleryPage = (props: Props) => {
             folders={folders}
             isStarredOnly={isStarredOnly}
             pathname={pathname}
+            isSidebarOpen={state.isSidebarOpen}
             toggleSidebar={toggleSidebar}
           />
           <div className="flex-1">
@@ -219,6 +220,13 @@ const GalleryPage = (props: Props) => {
                 );
               })}
               {isPendingNewImages ? '' : <InfiniteScrollTriggerPoint cb={onInfiniteScrollTriggerPoint} />}
+            </div>
+            <div className="fixed bottom-0 right-2 h-12 hidden">
+              <div className="flex items-center justify-center">
+                <div className="bg-neutral-300 rounded-full p-2">
+                  <PlusIcon className="text-neutral-700 w-4 h-4" />
+                </div>
+              </div>
             </div>
           </div>
           <div className="bg-zinc-950 px-2 py-0.5 text-neutral-400 text-sm hidden">sad</div>

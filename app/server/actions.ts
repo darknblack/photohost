@@ -229,7 +229,7 @@ export async function uploadImageOnServer(folder: string, formData: FormData) {
   fs.writeFileSync(imagePath, buffer);
 
   // Create the thumbnail and save it to disk
-  await ImageManipulation.downScale(sharp(buffer), thumbPath, 720, imagePath);
+  await ImageManipulation.downScale(sharp(buffer), thumbPath, 640, imagePath);
   return 1;
 }
 

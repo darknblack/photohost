@@ -49,6 +49,7 @@ interface Props {
   isStarredOnly: boolean;
   pathname: string;
   toggleSidebar: () => void;
+  isSidebarOpen: boolean;
 }
 
 function Header(props: Props) {
@@ -65,6 +66,7 @@ function Header(props: Props) {
     isStarredOnly,
     pathname,
     toggleSidebar,
+    isSidebarOpen,
   } = props;
   const router = useRouter();
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
@@ -97,49 +99,57 @@ function Header(props: Props) {
   });
 
   return (
-    <div id="header" className="px-4 pt-5 md:grid-cols-3 grid grid-cols-1 md:gap-0 gap-2">
-      <div className="flex">
-        <button className="flex items-center justify-center mr-1.5" onClick={toggleSidebar}>
-          <Bars3Icon className="w-6 h-6 text-neutral-300" />
-        </button>
-        <div className="flex gap-2 items-center">
-          <Breadcrumb className="bg-neutral-900 px-3 rounded">
-            <Breadcrumb.Item>
-              {pathname === '/trash' ? (
-                <Link href={{ pathname: '/trash' }} className="text-neutral-200">
-                  Trash
+    <div
+      id="header"
+      className={cx('bg-neutral-900 z-10 px-4 pt-5 flex flex-col gap-2', {
+        'left-72': isSidebarOpen,
+        'left-0': !isSidebarOpen,
+      })}
+    >
+      <div className="flex justify-between items-center">
+        <div className="flex">
+          <button className="flex items-center justify-center mr-1.5" onClick={toggleSidebar}>
+            <Bars3Icon className="w-6 h-6 text-neutral-300" />
+          </button>
+          <div className="flex gap-2 items-center">
+            <Breadcrumb className="bg-neutral-900 px-3 rounded">
+              <Breadcrumb.Item>
+                {pathname === '/trash' ? (
+                  <Link href={{ pathname: '/trash' }} className="text-neutral-200">
+                    Trash
+                  </Link>
+                ) : isStarredOnly ? (
+                  <Link href={{ pathname: '/gallery', query: { starred: '1' } }} className="text-neutral-200">
+                    Starred
+                  </Link>
+                ) : (
+                  <Link href={{ pathname: '/gallery', query: { folder: '' } }} className="text-neutral-200">
+                    Gallery
+                  </Link>
+                )}
+              </Breadcrumb.Item>
+              <Breadcrumb.Item>
+                <Link href={{ pathname: '/gallery', query: { folder: activeFolder } }} className="text-neutral-200">
+                  {activeFolder}
                 </Link>
-              ) : isStarredOnly ? (
-                <Link href={{ pathname: '/gallery', query: { starred: '1' } }} className="text-neutral-200">
-                  Starred
-                </Link>
-              ) : (
-                <Link href={{ pathname: '/gallery', query: { folder: '' } }} className="text-neutral-200">
-                  Gallery
-                </Link>
-              )}
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>
-              <Link href={{ pathname: '/gallery', query: { folder: activeFolder } }} className="text-neutral-200">
-                {activeFolder}
-              </Link>
 
-              <button
-                className={cx('ml-2.5 hidden', {
-                  '!block': activeFolder && activeFolder !== '',
-                })}
-                onClick={() => {
-                  setFormAddFolderName(activeFolder);
-                  setIsRenameModalOpen(true);
-                }}
-              >
-                <PencilIcon className={cx('w-4 text-neutral-500 hover:text-neutral-200')} />
-              </button>
-            </Breadcrumb.Item>
-          </Breadcrumb>
+                <button
+                  className={cx('ml-2.5 hidden', {
+                    '!block': activeFolder && activeFolder !== '',
+                  })}
+                  onClick={() => {
+                    setFormAddFolderName(activeFolder);
+                    setIsRenameModalOpen(true);
+                  }}
+                >
+                  <PencilIcon className={cx('w-4 text-neutral-500 hover:text-neutral-200')} />
+                </button>
+              </Breadcrumb.Item>
+            </Breadcrumb>
+          </div>
         </div>
       </div>
-      <div className="flex gap-2 md:justify-center">
+      <div className="flex gap-1">
         <Button
           size="xs"
           className="bg-transparent py-1 border border-neutral-400 min-w-[6.8rem]"
@@ -158,7 +168,12 @@ function Header(props: Props) {
             </>
           )}
         </Button>
-        <div className="flex gap-1">
+        <div
+          className={cx('gap-1', {
+            'hidden md:flex': selectedImagesId.length === 0,
+            'flex ': selectedImagesId.length > 0,
+          })}
+        >
           <Button
             size="xs"
             disabled={selectedImagesId.length === 0}
@@ -222,67 +237,72 @@ function Header(props: Props) {
             <TrashIcon className="w-5 text-neutral-200" />
           </Button>
         </div>
-      </div>
-      <div className="flex gap-1 md:justify-end">
-        <div className="flex items-center justify-center">
+
+        <div
+          className={cx('flex gap-1', {
+            'md:flex hidden': selectedImagesId.length > 0,
+          })}
+        >
+          <div className="flex items-center justify-center">
+            <Button
+              size="xs"
+              className={cx('bg-transparent rounded-r-none border-r-0 border-neutral-400', {
+                '!bg-gray-300': state.isListView,
+              })}
+              onClick={() => {
+                changeState({ ...state, isListView: true });
+              }}
+            >
+              <ListBulletIcon
+                className={cx('w-5', {
+                  'text-neutral-700': state.isListView,
+                })}
+              />
+            </Button>
+            <Button
+              size="xs"
+              className={cx('bg-transparent rounded-l-none border-l-0 !border-neutral-400', {
+                '!bg-gray-200': !state.isListView,
+              })}
+              onClick={() => {
+                changeState({ ...state, isListView: false });
+              }}
+            >
+              <Squares2X2Icon
+                className={cx('w-5', {
+                  'text-neutral-700': !state.isListView,
+                })}
+              />
+            </Button>
+          </div>
+          <FileInput
+            id="upload-image"
+            className="hidden"
+            multiple
+            accept="image/png, image/gif, image/jpeg"
+            onChange={uploadImage}
+          />
           <Button
-            size="xs"
-            className={cx('bg-transparent rounded-r-none border-r-0 border-neutral-400', {
-              '!bg-gray-300': state.isListView,
-            })}
+            size={'xs'}
+            className="bg-transparent border border-neutral-400"
             onClick={() => {
-              changeState({ ...state, isListView: true });
+              changeState({ openAddFolder: !state.openAddFolder });
             }}
           >
-            <ListBulletIcon
-              className={cx('w-5', {
-                'text-neutral-700': state.isListView,
-              })}
-            />
+            <FolderPlusIcon className="w-5 text-neutral-200" />
+            <span className="text-neutral-200 text-xs relative top-0.5"></span>
           </Button>
           <Button
-            size="xs"
-            className={cx('bg-transparent rounded-l-none border-l-0 !border-neutral-400', {
-              '!bg-gray-200': !state.isListView,
-            })}
+            size={'xs'}
+            className="bg-transparent border border-neutral-400"
             onClick={() => {
-              changeState({ ...state, isListView: false });
+              document.getElementById('upload-image')?.click();
             }}
           >
-            <Squares2X2Icon
-              className={cx('w-5', {
-                'text-neutral-700': !state.isListView,
-              })}
-            />
+            <PhotoIcon className="w-5 text-neutral-200" />
+            <span className="text-neutral-200 text-xs relative top-0.5"></span>
           </Button>
         </div>
-        <FileInput
-          id="upload-image"
-          className="hidden"
-          multiple
-          accept="image/png, image/gif, image/jpeg"
-          onChange={uploadImage}
-        />
-        <Button
-          size={'xs'}
-          className="bg-transparent border border-neutral-400"
-          onClick={() => {
-            changeState({ openAddFolder: !state.openAddFolder });
-          }}
-        >
-          <FolderPlusIcon className="w-5 text-neutral-200" />
-          <span className="text-neutral-200 text-xs relative top-0.5"></span>
-        </Button>
-        <Button
-          size={'xs'}
-          className="bg-transparent border border-neutral-400"
-          onClick={() => {
-            document.getElementById('upload-image')?.click();
-          }}
-        >
-          <PhotoIcon className="w-5 text-neutral-200" />
-          <span className="text-neutral-200 text-xs relative top-0.5"></span>
-        </Button>
       </div>
 
       {/* RENAME MODAL */}

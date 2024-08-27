@@ -1,27 +1,32 @@
 import sharp from 'sharp';
 
+const sharpOpt = {
+  quality: 50,
+  force: true,
+};
+
 const ImageManipulation = {
-  downScale: async (image: sharp.Sharp, outputPath: string, targetWidth = 720, actualPath: string) => {
+  downScale: async (image: sharp.Sharp, outputPath: string, targetLongestSide = 640, actualPath: string) => {
     // downscale images if they are larger than the target width maintaining aspect ratio
 
     const metadata = await image.metadata();
     const { width, height } = metadata;
 
     if (metadata && width && height) {
-      if (width > height && width > targetWidth) {
+      if (width > height && width > targetLongestSide) {
         return image
-          .resize(targetWidth, null, {
-            withoutEnlargement: true,
-          })
+          .resize(targetLongestSide, null, { withoutEnlargement: true })
           .withMetadata()
+          .webp(sharpOpt)
           .toFile(outputPath);
-      } else if (height > width && height > targetWidth) {
+      } else if (height > width && height > targetLongestSide) {
         return image
-          .resize(targetWidth, null, {
-            withoutEnlargement: true,
-          })
+          .resize(null, targetLongestSide, { withoutEnlargement: true })
           .withMetadata()
+          .webp(sharpOpt)
           .toFile(outputPath);
+      } else {
+        return image.webp(sharpOpt).toFile(outputPath);
       }
     }
 
