@@ -170,6 +170,7 @@ function Header(props: Props) {
               }
             }
           }}
+          disabled={images.length === 0}
         >
           <SelectEl isSelecting={isSelecting} isAllSelected={isAllSelected} images={images} />
         </Button>
