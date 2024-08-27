@@ -324,7 +324,9 @@ function Header(props: Props) {
                     const formatedFolderName = formAddFolderName.trim();
                     const res = await renameFolder(activeFolder, formatedFolderName);
                     if (res) {
-                      router.replace(`/?folder=${encodeURIComponent(formatedFolderName)}`);
+                      const params = new URLSearchParams(window.location.search);
+                      params.set('folder', formatedFolderName);
+                      router.replace(`/gallery/?${params.toString()}`);
                       router.refresh();
                     }
                   } catch (e) {
