@@ -126,17 +126,17 @@ function Header(props: Props) {
                     Trash
                   </Link>
                 ) : isStarredOnly ? (
-                  <Link href={{ pathname: '/gallery', query: { starred: '1' } }} className="text-neutral-200">
+                  <Link href={{ pathname: '/album', query: { starred: '1' } }} className="text-neutral-200">
                     Starred
                   </Link>
                 ) : (
-                  <Link href={{ pathname: '/gallery', query: { folder: '' } }} className="text-neutral-200">
-                    Gallery
+                  <Link href={{ pathname: '/album', query: { folder: '' } }} className="text-neutral-200">
+                    Album
                   </Link>
                 )}
               </Breadcrumb.Item>
               <Breadcrumb.Item>
-                <Link href={{ pathname: '/gallery', query: { folder: activeFolder } }} className="text-neutral-200">
+                <Link href={{ pathname: '/album', query: { folder: activeFolder } }} className="text-neutral-200">
                   {activeFolder}
                 </Link>
 
@@ -159,7 +159,7 @@ function Header(props: Props) {
       <div className="flex gap-1">
         <Button
           size="xs"
-          className={cx('bg-transparent py-1 border border-neutral-400 min-w-[5.5rem] transition-all')}
+          className={cx('bg-transparent py-1 border border-neutral-400 min-w-[5rem] transition-all')}
           onClick={() => {
             if (!isSelecting) {
               setIsSelecting(true);
@@ -339,7 +339,7 @@ function Header(props: Props) {
                     if (res) {
                       const params = new URLSearchParams(window.location.search);
                       params.set('folder', formatedFolderName);
-                      router.replace(`/gallery/?${params.toString()}`);
+                      router.replace(`/album?${params.toString()}`);
                       router.refresh();
                     }
                   } catch (e) {

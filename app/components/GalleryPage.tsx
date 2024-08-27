@@ -127,7 +127,7 @@ const GalleryPage = (props: Props) => {
           : await getImages({
               page: newPage,
               folder: activeFolder,
-              isGallery: pathname === '/gallery',
+              isGallery: pathname === '/album',
               isTrash: pathname === '/trash',
             });
 
@@ -200,8 +200,8 @@ const GalleryPage = (props: Props) => {
                 folders.map(folder => (
                   <Link
                     key={folder.name}
-                    href={{ pathname: '/gallery', query: { folder: folder.name } }}
-                    as={{ pathname: '/gallery', query: { folder: folder.name } }}
+                    href={{ pathname: '/album', query: { folder: folder.name } }}
+                    as={{ pathname: '/album', query: { folder: folder.name } }}
                     className="flex items-center justify-center flex-col group/folder"
                   >
                     <FolderIcon className="text-neutral-400 w-20 group-hover/folder:text-neutral-300" />

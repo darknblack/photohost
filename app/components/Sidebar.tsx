@@ -48,12 +48,12 @@ function Sidebar(props: Props) {
           <div className="flex flex-col gap-3 justify-center">
             <div className="">
               <Link
-                href={{ pathname: '/gallery', query: { folder: '' } }}
-                as={{ pathname: '/gallery', query: { folder: '' } }}
+                href={{ pathname: '/album', query: { folder: '' } }}
+                as={{ pathname: '/album', query: { folder: '' } }}
                 className="flex gap-2"
               >
                 <FolderIcon className="text-neutral-300 w-5" />
-                <h3 className="text-sm text-neutral-300">Gallery</h3>
+                <h3 className="text-sm text-neutral-300">Album</h3>
               </Link>
               <div className="py-2 flex flex-col px-0.5">
                 {folders.map(folder => (
@@ -74,7 +74,7 @@ function Sidebar(props: Props) {
                           className={cx('text-sm text-neutral-500', {
                             '!text-neutral-300': folder.name === activeFolder,
                           })}
-                          href={`/gallery?folder=${encodeURIComponent(folder.name)}`}
+                          href={`/album?folder=${encodeURIComponent(folder.name)}`}
                         >
                           {folder.name} <span className={cx('text-xs text-neutral-600')}>({folder.count})</span>
                         </Link>

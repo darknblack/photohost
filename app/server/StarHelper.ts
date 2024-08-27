@@ -1,4 +1,4 @@
-import { GALLERY_ROOT_PATH, STARRED_JSON_PATH } from '@/util/fs-utils';
+import { ALBUM_ROOT_PATH, STARRED_JSON_PATH } from '@/util/fs-utils';
 import fs from 'fs';
 import fsp from 'fs/promises';
 
@@ -9,7 +9,7 @@ export const StarHelper = {
   isInit: false,
   init() {
     if (!fs.existsSync(STARRED_JSON_PATH)) {
-      fs.mkdirSync(GALLERY_ROOT_PATH, { recursive: true });
+      fs.mkdirSync(ALBUM_ROOT_PATH, { recursive: true });
       fs.writeFileSync(STARRED_JSON_PATH, JSON.stringify(this.starred));
       this.isInit = true;
     } else {

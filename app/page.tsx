@@ -28,13 +28,13 @@ export default async function Home() {
         </div>
         <div className="flex flex-wrap py-4 gap-4 text-neutral-300">
           <Link
-            href="/gallery"
+            href="/album"
             className="w-80 h-80 border border-neutral-500 rounded-md flex flex-col justify-center items-center"
           >
             <div>
               <FolderIcon className="w-20 h-20 mb-1" />
             </div>
-            <div>View your gallery</div>
+            <div>View your album</div>
           </Link>
           <Link
             href="/starred"

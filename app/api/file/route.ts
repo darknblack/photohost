@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
-import { DELETED_IMAGES_PATH, GALLERY_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS } from '@/util/fs-utils';
+import { DELETED_IMAGES_PATH, ALBUM_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS } from '@/util/fs-utils';
 import FilenameHandler from '@/app/server/FilenameHandler';
 
 export async function GET(req: NextRequest) {
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       }
 
       if (!isThumb) {
-        const res = await getFile(folder, filenameWithoutParam, GALLERY_ROOT_PATH);
+        const res = await getFile(folder, filenameWithoutParam, ALBUM_ROOT_PATH);
         if (res) {
           return new NextResponse(res, headers);
         }
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
         if (res) {
           return new NextResponse(res, headers);
         } else {
-          const res = await getFile(folder, filenameWithoutParam, GALLERY_ROOT_PATH);
+          const res = await getFile(folder, filenameWithoutParam, ALBUM_ROOT_PATH);
           if (res) {
             return new NextResponse(res, headers);
           }
