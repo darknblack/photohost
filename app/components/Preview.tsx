@@ -106,15 +106,16 @@ function Preview(props: Props) {
         >
           <div className="h-full relative pointer-events-none flex items-center justify-center px-2">
             <img src={activeImageUrl} className="max-h-full cursor-default button-w-action" />
-            <div className="absolute flex top-0 left-0 pt-2 px-2 justify-end w-full">
-              <div className="flex gap-1.5">
-                <TopButtonWrapper onClick={onClickDownload}>
-                  <ArrowDownTrayIcon className="w-6 h-6" />
-                </TopButtonWrapper>
-                <TopButtonWrapper onClick={onClose}>
-                  <XMarkIcon className="w-6 h-6" />
-                </TopButtonWrapper>
-              </div>
+          </div>
+
+          <div className="absolute flex top-0 left-0 pt-2 px-2 justify-end w-full">
+            <div className="flex gap-1.5">
+              <TopButtonWrapper onClick={onClickDownload}>
+                <ArrowDownTrayIcon className="w-6 h-6" />
+              </TopButtonWrapper>
+              <TopButtonWrapper onClick={onClose}>
+                <XMarkIcon className="w-6 h-6" />
+              </TopButtonWrapper>
             </div>
           </div>
 

@@ -30,7 +30,7 @@ interface Props {
 }
 
 const GalleryPage = (props: Props) => {
-  const { folders, activeFolder, isStarredOnly, cPage, isSidebarOpen } = props;
+  const { folders, activeFolder, isStarredOnly, cPage, isSidebarOpen, isMobileDevice } = props;
 
   const [selectedImagesId, setSelectedImagesId] = useState<string[]>([]);
   const [isPendingNewImages, startFetchingNewImages] = useTransition();
@@ -107,13 +107,11 @@ const GalleryPage = (props: Props) => {
     }));
   });
 
-  const onThumbParentClick = useEvent(
-    (path: string) => (event: React.MouseEvent<HTMLDivElement | HTMLAnchorElement | HTMLButtonElement>) => {
-      const target = event.target as HTMLImageElement | HTMLDivElement;
-      if (target.classList.contains('button-w-action')) return;
-      selectPreviewImageUrl(path);
-    }
-  );
+  const onThumbParentClick = useEvent((path: string) => (event: React.MouseEvent<Element>) => {
+    const target = event.target as HTMLImageElement | HTMLDivElement;
+    if (target.classList.contains('button-w-action')) return;
+    selectPreviewImageUrl(path);
+  });
 
   const onInfiniteScrollTriggerPoint = useEvent(async () => {
     if (isPendingNewImages) return;
@@ -216,6 +214,7 @@ const GalleryPage = (props: Props) => {
                     isSelected={selectedImagesId.includes(image.path)}
                     onParentclick={onThumbParentClick(image.path)}
                     pathname={pathname}
+                    isMobileDevice={isMobileDevice}
                   />
                 );
               })}

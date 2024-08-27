@@ -11,6 +11,7 @@ import { toggleStar } from '@/app/server/actions';
 import { useRouter } from 'next/navigation';
 import useEvent from '../hooks/useEvent';
 import download from '../server/ClientDownloader';
+import useTaps from '../hooks/useTaps';
 interface Props {
   image: Image;
   state: {
@@ -18,12 +19,13 @@ interface Props {
   };
   selectImage: () => void;
   isSelected: boolean;
-  onParentclick: (event: React.MouseEvent<HTMLDivElement | HTMLAnchorElement | HTMLButtonElement>) => void;
+  onParentclick: (event: React.MouseEvent<Element>) => void;
   pathname: string;
+  isMobileDevice: boolean;
 }
 
 function Thumb(props: Props) {
-  const { image, state, selectImage, isSelected, onParentclick, pathname } = props;
+  const { image, state, selectImage, isSelected, onParentclick, isMobileDevice } = props;
   const isStarred = image.isStar;
   const router = useRouter();
 
@@ -36,17 +38,20 @@ function Thumb(props: Props) {
     download(image.path);
   });
 
+  const taps = useTaps({
+    onSingleTap: onParentclick,
+    onDoubleTap: onClickStar,
+    threshHold: !isMobileDevice ? 0 : 250,
+  });
+
   return (
-    <div className="relative group/thumb select-none cursor-pointer" onClick={onParentclick}>
-      <Link
-        key={image.path}
-        href={image.path}
-        className={cx('', {
-          'flex gap-2 items-center': state.isListView,
-        })}
-        target="_blank"
-        prefetch={false}
-      >
+    <div
+      className={cx('relative select-none cursor-pointer', {
+        'group/thumb': !isMobileDevice,
+      })}
+      onClick={taps}
+    >
+      <div className={cx({ 'flex gap-2 items-center': state.isListView })}>
         <img
           src={image.thumb}
           alt="Image"
@@ -58,7 +63,7 @@ function Thumb(props: Props) {
             width: '100%',
           }}
         />
-      </Link>
+      </div>
       <div
         className={cx({
           hidden: !state.isListView,
@@ -71,10 +76,11 @@ function Thumb(props: Props) {
         className={cx(
           'group-hover/thumb:flex hidden',
           'rounded flex-col justify-between',
-          'bg-neutral-950 bg-opacity-75',
+          // 'bg-neutral-950 bg-opacity-75',
           'absolute w-full h-full left-0 top-0 right-0 bottom-0',
           {
             '!flex !bg-opacity-0 hover:!bg-opacity-75': isSelected || isStarred,
+            'bg-neutral-950 bg-opacity-75': !isMobileDevice,
           }
         )}
       >
@@ -87,7 +93,11 @@ function Thumb(props: Props) {
             })}
           />
         </div>
-        <div className="items-center justify-center w-full flex gap-1.5">
+        <div
+          className={cx('items-center justify-center w-full flex gap-1.5', {
+            hidden: isMobileDevice,
+          })}
+        >
           <button
             className={cx(
               'group-hover/thumb:block hidden button-w-action transition-all',
