@@ -13,12 +13,13 @@ import {
   ArrowDownTrayIcon,
   DocumentDuplicateIcon,
   Bars3Icon,
+  CursorArrowRaysIcon,
 } from '@heroicons/react/24/outline';
 import { Button, FileInput, Modal, TextInput, Select } from 'flowbite-react';
 import cx from 'clsx';
 import { Breadcrumb } from 'flowbite-react';
 import Link from 'next/link';
-import { memo, useRef, useState } from 'react';
+import { memo, useMemo, useRef, useState } from 'react';
 import {
   copyFilesFromServer,
   deleteFilesFromServer,
@@ -50,6 +51,8 @@ interface Props {
   pathname: string;
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
+  isSelecting: boolean;
+  setIsSelecting: (isSelecting: boolean) => void;
 }
 
 function Header(props: Props) {
@@ -67,6 +70,8 @@ function Header(props: Props) {
     pathname,
     toggleSidebar,
     isSidebarOpen,
+    isSelecting,
+    setIsSelecting,
   } = props;
   const router = useRouter();
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
@@ -97,6 +102,8 @@ function Header(props: Props) {
       router.refresh();
     } catch (e) {}
   });
+
+  const isFeatureHiddenOnTrash = pathname === '/trash';
 
   return (
     <div
@@ -152,21 +159,19 @@ function Header(props: Props) {
       <div className="flex gap-1">
         <Button
           size="xs"
-          className="bg-transparent py-1 border border-neutral-400 min-w-[6.8rem]"
-          onClick={selectAllImages}
-          disabled={images.length === 0}
+          className={cx('bg-transparent py-1 border border-neutral-400 min-w-[5.5rem] transition-all')}
+          onClick={() => {
+            if (!isSelecting) {
+              setIsSelecting(true);
+            } else {
+              selectAllImages();
+              if (isAllSelected) {
+                setIsSelecting(false);
+              }
+            }
+          }}
         >
-          {images.length === 0 || !isAllSelected ? (
-            <>
-              <span>Select All</span>
-              <CheckIcon className="ml-1 w-3.5" />
-            </>
-          ) : (
-            <>
-              <span>Deselect All</span>
-              <XMarkIcon className="ml-1 w-3.5" />
-            </>
-          )}
+          <SelectEl isSelecting={isSelecting} isAllSelected={isAllSelected} images={images} />
         </Button>
         <div
           className={cx('gap-1', {
@@ -209,7 +214,9 @@ function Header(props: Props) {
           <Button
             size="xs"
             disabled={selectedImagesId.length === 0 || folders.length === 0}
-            className="bg-transparent border border-neutral-400"
+            className={cx('bg-transparent border border-neutral-400', {
+              'hidden ': isFeatureHiddenOnTrash,
+            })}
             onClick={() => {
               setIsCopyModalOpen(true);
             }}
@@ -275,33 +282,39 @@ function Header(props: Props) {
               />
             </Button>
           </div>
-          <FileInput
-            id="upload-image"
-            className="hidden"
-            multiple
-            accept="image/png, image/gif, image/jpeg"
-            onChange={uploadImage}
-          />
-          <Button
-            size={'xs'}
-            className="bg-transparent border border-neutral-400"
-            onClick={() => {
-              changeState({ openAddFolder: !state.openAddFolder });
-            }}
+          <div
+            className={cx('flex gap-1', {
+              'hidden ': isFeatureHiddenOnTrash,
+            })}
           >
-            <FolderPlusIcon className="w-5 text-neutral-200" />
-            <span className="text-neutral-200 text-xs relative top-0.5"></span>
-          </Button>
-          <Button
-            size={'xs'}
-            className="bg-transparent border border-neutral-400"
-            onClick={() => {
-              document.getElementById('upload-image')?.click();
-            }}
-          >
-            <PhotoIcon className="w-5 text-neutral-200" />
-            <span className="text-neutral-200 text-xs relative top-0.5"></span>
-          </Button>
+            <FileInput
+              id="upload-image"
+              className="hidden"
+              multiple
+              accept="image/png, image/gif, image/jpeg"
+              onChange={uploadImage}
+            />
+            <Button
+              size={'xs'}
+              className="bg-transparent border border-neutral-400"
+              onClick={() => {
+                changeState({ openAddFolder: !state.openAddFolder });
+              }}
+            >
+              <FolderPlusIcon className="w-5 text-neutral-200" />
+              <span className="text-neutral-200 text-xs relative top-0.5"></span>
+            </Button>
+            <Button
+              size={'xs'}
+              className="bg-transparent border border-neutral-400"
+              onClick={() => {
+                document.getElementById('upload-image')?.click();
+              }}
+            >
+              <PhotoIcon className="w-5 text-neutral-200" />
+              <span className="text-neutral-200 text-xs relative top-0.5"></span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -473,6 +486,35 @@ function Header(props: Props) {
       </Modal>
     </div>
   );
+}
+
+interface SelectElProps {
+  isSelecting: boolean;
+  isAllSelected: boolean;
+  images: Image[];
+}
+function SelectEl(props: SelectElProps) {
+  const { isSelecting, isAllSelected, images } = props;
+  if (isSelecting) {
+    return images.length === 0 || !isAllSelected ? (
+      <>
+        <span>All</span>
+        <CheckIcon className="ml-1 w-3.5" />
+      </>
+    ) : (
+      <>
+        <span>Cancel</span>
+        <XMarkIcon className="ml-1 w-3.5" />
+      </>
+    );
+  } else {
+    return (
+      <>
+        <span>Select</span>
+        <CursorArrowRaysIcon className="ml-1 w-3.5" />
+      </>
+    );
+  }
 }
 
 export default memo(Header);

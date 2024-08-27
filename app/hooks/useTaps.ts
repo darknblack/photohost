@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 type RMEvent = React.MouseEvent<Element>;
 interface Props {

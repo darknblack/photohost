@@ -34,6 +34,7 @@ const GalleryPage = (props: Props) => {
 
   const [selectedImagesId, setSelectedImagesId] = useState<string[]>([]);
   const [isPendingNewImages, startFetchingNewImages] = useTransition();
+  const [isSelecting, setIsSelecting] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -87,6 +88,7 @@ const GalleryPage = (props: Props) => {
       setSelectedImagesId(selectedImagesId.filter(i => i !== imagePath));
     } else {
       setSelectedImagesId([...selectedImagesId, imagePath]);
+      if (!isSelecting) setIsSelecting(true);
     }
   });
 
@@ -182,6 +184,8 @@ const GalleryPage = (props: Props) => {
             pathname={pathname}
             isSidebarOpen={state.isSidebarOpen}
             toggleSidebar={toggleSidebar}
+            isSelecting={isSelecting}
+            setIsSelecting={setIsSelecting}
           />
           <div className="flex-1">
             <div
@@ -209,6 +213,7 @@ const GalleryPage = (props: Props) => {
                   <Thumb
                     key={image.path}
                     image={image}
+                    isSelecting={isSelecting}
                     state={state}
                     selectImage={() => selectImage(image.path)}
                     isSelected={selectedImagesId.includes(image.path)}

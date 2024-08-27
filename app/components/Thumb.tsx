@@ -1,12 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import cx from 'clsx';
 import { StarIcon } from '@heroicons/react/24/outline';
 import { StarIcon as StarredIcon } from '@heroicons/react/16/solid';
 import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 import { Checkbox } from 'flowbite-react';
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 import { toggleStar } from '@/app/server/actions';
 import { useRouter } from 'next/navigation';
 import useEvent from '../hooks/useEvent';
@@ -22,10 +21,11 @@ interface Props {
   onParentclick: (event: React.MouseEvent<Element>) => void;
   pathname: string;
   isMobileDevice: boolean;
+  isSelecting: boolean;
 }
 
 function Thumb(props: Props) {
-  const { image, state, selectImage, isSelected, onParentclick, isMobileDevice } = props;
+  const { image, state, selectImage, isSelected, onParentclick, isMobileDevice, isSelecting } = props;
   const isStarred = image.isStar;
   const router = useRouter();
 
@@ -44,12 +44,18 @@ function Thumb(props: Props) {
     threshHold: !isMobileDevice ? 0 : 250,
   });
 
+  const longPress = useEvent(event => {
+    event.preventDefault();
+    selectImage();
+  });
+
   return (
     <div
       className={cx('relative select-none cursor-pointer', {
         'group/thumb': !isMobileDevice,
       })}
       onClick={taps}
+      onContextMenu={longPress}
     >
       <div className={cx({ 'flex gap-2 items-center': state.isListView })}>
         <img
@@ -79,7 +85,7 @@ function Thumb(props: Props) {
           // 'bg-neutral-950 bg-opacity-75',
           'absolute w-full h-full left-0 top-0 right-0 bottom-0',
           {
-            '!flex !bg-opacity-0 hover:!bg-opacity-75': isSelected || isStarred,
+            '!flex !bg-opacity-0 hover:!bg-opacity-75': isStarred || isSelected || isSelecting,
             'bg-neutral-950 bg-opacity-75': !isMobileDevice,
           }
         )}
@@ -89,7 +95,7 @@ function Thumb(props: Props) {
             checked={isSelected}
             onChange={selectImage}
             className={cx('group-hover/thumb:block hidden button-w-action', {
-              '!block': isSelected,
+              '!block': isSelected || isSelecting,
             })}
           />
         </div>
