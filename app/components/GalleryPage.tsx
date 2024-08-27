@@ -152,6 +152,7 @@ const GalleryPage = (props: Props) => {
     });
 
     clientCookies.set('sidebar', newState ? 'open' : 'closed');
+    router.refresh();
   });
 
   return (

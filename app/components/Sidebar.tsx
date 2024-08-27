@@ -20,7 +20,7 @@ function Sidebar(props: Props) {
       {/* invisible layer just to cover the main page, clicking this would hide the sidebar */}
       {isSidebarOpen && (
         <button
-          className={cx('fixed bottom-0 top-0 left-0 right-0 z-20 md:hidden block', {
+          className={cx('fixed bottom-0 top-0 left-0 right-0 z-10 md:hidden block', {
             hidden: !isSidebarOpen,
           })}
           onClick={toggleSidebar}

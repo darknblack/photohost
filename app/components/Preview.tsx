@@ -96,7 +96,7 @@ function Preview(props: Props) {
   return (
     <div
       className={cx(
-        'flex flex-col justify-center fixed left-0 top-0 right-0 bottom-0 bg-black bg-opacity-70 backdrop-blur animate-backdrop-blur select-none'
+        'flex flex-col justify-center fixed left-0 top-0 right-0 bottom-0 bg-black bg-opacity-70 backdrop-blur animate-backdrop-blur select-none z-20'
       )}
     >
       <div className="h-full flex flex-col gap-2">
