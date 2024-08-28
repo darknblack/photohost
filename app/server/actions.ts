@@ -276,9 +276,7 @@ export async function deleteFilesFromServer(
 export async function deleteFoldersFromServer(folders: string[]) {
   for (let i = 0; folders.length > i; i++) {
     const folder = folders[i];
-
     const folderPath = path.join(ALBUM_ROOT_PATH, folder);
-
     if (folder && fs.existsSync(folderPath)) {
       fs.rmdirSync(folderPath);
     }

@@ -14,23 +14,18 @@ import {
   DocumentDuplicateIcon,
   Bars3Icon,
   CursorArrowRaysIcon,
+  FolderMinusIcon,
 } from '@heroicons/react/24/outline';
-import { Button, FileInput, Modal, TextInput, Select } from 'flowbite-react';
+import { Button, FileInput } from 'flowbite-react';
 import cx from 'clsx';
 import { Breadcrumb } from 'flowbite-react';
 import Link from 'next/link';
-import { memo, useMemo, useRef, useState } from 'react';
-import {
-  copyFilesFromServer,
-  deleteFilesFromServer,
-  deleteZipFile,
-  moveFilesFromServer,
-  renameFolder,
-  zipFile,
-} from '@/app/server/actions';
+import { memo, useState } from 'react';
+import { deleteZipFile, zipFile } from '@/app/server/actions';
 import { useRouter } from 'next/navigation';
-import useEvent from '@/app/hooks/useEvent';
 import download from '../server/ClientDownloader';
+import Modals from './Modals';
+import useEvent from '../hooks/useEvent';
 
 interface State {
   isListView: boolean;
@@ -80,412 +75,259 @@ function Header(props: Props) {
   const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
   const [formAddFolderName, setFormAddFolderName] = useState(activeFolder);
 
-  const rElDestinationFolder = useRef<any>();
-
   const isTrash = pathname === '/trash';
+  const isAlbum = pathname === '/album';
+  const isFeatureHiddenOnTrash = isTrash;
 
-  const fSelectedImagesId: [string, string][] = selectedImagesId
-    .filter(item => item)
-    .map(item => {
-      const [, queryString] = item.split('?');
+  const downloadMultiple = useEvent(async () => {
+    // Download single image
+    if (selectedImagesId.length === 1) {
+      download(selectedImagesId[0]);
+      return;
+    }
 
-      // Extract the filename from the query string
-      const params = new URLSearchParams(queryString);
-      const filename = params.get('image') as string;
-      const folder = (params.get('folder') as string) || '';
-      return [folder, filename];
-    });
-
-  const deleteFilesFromServerHandler = useEvent(async () => {
+    // Download multiple images
+    let zipFilename = '';
     try {
-      await deleteFilesFromServer(fSelectedImagesId, isTrash);
-      router.refresh();
-    } catch (e) {}
+      zipFilename = await zipFile(selectedImagesId);
+      const res = await fetch(`api/zip?filename=${zipFilename}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/zip' },
+      });
+      const blob = await res.blob();
+      const clientDownloadFilename = `photohost-${zipFilename.split('.')[0]}-${selectedImagesId.length}-files.zip`;
+      download(URL.createObjectURL(blob), clientDownloadFilename);
+    } catch (e) {
+    } finally {
+      await deleteZipFile(zipFilename);
+    }
   });
 
-  const isFeatureHiddenOnTrash = pathname === '/trash';
+  const isDeleteFolder = isAlbum && images.length === 0 && activeFolder;
+  const isDeleteDisabled = (() => {
+    if (isStarredOnly && selectedImagesId.length === 0) return true;
+    if (isAlbum && activeFolder === '' && selectedImagesId.length === 0) return true;
+    if (isAlbum && activeFolder && selectedImagesId.length === 0 && images.length !== 0) return true;
+    return false;
+  })();
 
   return (
-    <div
-      id="header"
-      className={cx('bg-neutral-900 z-10 px-4 pt-5 flex flex-col gap-2', {
-        'left-72': isSidebarOpen,
-        'left-0': !isSidebarOpen,
-      })}
-    >
-      <div className="flex justify-between items-center">
-        <div className="flex">
-          <button className="flex items-center justify-center mr-1.5" onClick={toggleSidebar}>
-            <Bars3Icon className="w-6 h-6 text-neutral-300" />
-          </button>
-          <div className="flex gap-2 items-center">
-            <Breadcrumb className="bg-neutral-900 px-3 rounded">
-              <Breadcrumb.Item>
-                {pathname === '/trash' ? (
-                  <Link href={{ pathname: '/trash' }} className="text-neutral-200">
-                    Trash
+    <>
+      <div
+        id="header"
+        className={cx('bg-neutral-900 z-10 px-4 pt-5 flex flex-col gap-2', {
+          'left-72': isSidebarOpen,
+          'left-0': !isSidebarOpen,
+        })}
+      >
+        <div className="flex justify-between items-center">
+          <div className="flex">
+            <button className="flex items-center justify-center mr-1.5" onClick={toggleSidebar}>
+              <Bars3Icon className="w-6 h-6 text-neutral-300" />
+            </button>
+            <div className="flex gap-2 items-center">
+              <Breadcrumb className="bg-neutral-900 px-3 rounded">
+                <Breadcrumb.Item>
+                  {pathname === '/trash' ? (
+                    <Link href={{ pathname: '/trash' }} className="text-neutral-200">
+                      Trash
+                    </Link>
+                  ) : isStarredOnly ? (
+                    <Link href={{ pathname: '/album', query: { starred: '1' } }} className="text-neutral-200">
+                      Starred
+                    </Link>
+                  ) : (
+                    <Link href={{ pathname: '/album', query: { folder: '' } }} className="text-neutral-200">
+                      Album
+                    </Link>
+                  )}
+                </Breadcrumb.Item>
+                <Breadcrumb.Item>
+                  <Link href={{ pathname: '/album', query: { folder: activeFolder } }} className="text-neutral-200">
+                    {activeFolder}
                   </Link>
-                ) : isStarredOnly ? (
-                  <Link href={{ pathname: '/album', query: { starred: '1' } }} className="text-neutral-200">
-                    Starred
-                  </Link>
-                ) : (
-                  <Link href={{ pathname: '/album', query: { folder: '' } }} className="text-neutral-200">
-                    Album
-                  </Link>
-                )}
-              </Breadcrumb.Item>
-              <Breadcrumb.Item>
-                <Link href={{ pathname: '/album', query: { folder: activeFolder } }} className="text-neutral-200">
-                  {activeFolder}
-                </Link>
 
-                <button
-                  className={cx('ml-2.5 hidden', {
-                    '!block': activeFolder && activeFolder !== '',
-                  })}
-                  onClick={() => {
-                    setFormAddFolderName(activeFolder);
-                    setIsRenameModalOpen(true);
-                  }}
-                >
-                  <PencilIcon className={cx('w-4 text-neutral-500 hover:text-neutral-200')} />
-                </button>
-              </Breadcrumb.Item>
-            </Breadcrumb>
+                  <button
+                    className={cx('ml-2.5 hidden', {
+                      '!block': activeFolder && activeFolder !== '',
+                    })}
+                    onClick={() => {
+                      setFormAddFolderName(activeFolder);
+                      setIsRenameModalOpen(true);
+                    }}
+                  >
+                    <PencilIcon className={cx('w-4 text-neutral-500 hover:text-neutral-200')} />
+                  </button>
+                </Breadcrumb.Item>
+              </Breadcrumb>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="flex gap-1">
-        <Button
-          size="xs"
-          className={cx('bg-transparent py-1 border border-neutral-400 min-w-[5rem] transition-all')}
-          onClick={() => {
-            if (!isSelecting) {
-              setIsSelecting(true);
-            } else {
-              selectAllImages();
-              if (isAllSelected) {
-                setIsSelecting(false);
-              }
-            }
-          }}
-          disabled={images.length === 0}
-        >
-          <SelectEl isSelecting={isSelecting} isAllSelected={isAllSelected} images={images} />
-        </Button>
-        <div
-          className={cx('gap-1', {
-            'hidden md:flex': selectedImagesId.length === 0,
-            'flex ': selectedImagesId.length > 0,
-          })}
-        >
+        <div className="flex gap-1">
           <Button
             size="xs"
-            disabled={selectedImagesId.length === 0}
-            className="bg-transparent border border-neutral-400"
-            onClick={async () => {
-              // Download single image
-              if (selectedImagesId.length === 1) {
-                download(selectedImagesId[0]);
-                return;
-              }
-
-              // Download multiple images
-              let zipFilename = '';
-              try {
-                zipFilename = await zipFile(selectedImagesId);
-                const res = await fetch(`api/zip?filename=${zipFilename}`, {
-                  method: 'GET',
-                  headers: { 'Content-Type': 'application/zip' },
-                });
-                const blob = await res.blob();
-                const clientDownloadFilename = `photohost-${zipFilename.split('.')[0]}-${
-                  selectedImagesId.length
-                }-files.zip`;
-                download(URL.createObjectURL(blob), clientDownloadFilename);
-              } catch (e) {
-              } finally {
-                await deleteZipFile(zipFilename);
+            className={cx('bg-transparent py-1 border border-neutral-400 min-w-[5rem] transition-all')}
+            onClick={() => {
+              if (!isSelecting) {
+                setIsSelecting(true);
+              } else {
+                selectAllImages();
+                if (isAllSelected) {
+                  setIsSelecting(false);
+                }
               }
             }}
+            disabled={images.length === 0}
           >
-            <ArrowDownTrayIcon className="w-5 text-neutral-200" />
+            <SelectEl isSelecting={isSelecting} isAllSelected={isAllSelected} images={images} />
           </Button>
-          <Button
-            size="xs"
-            disabled={selectedImagesId.length === 0 || folders.length === 0}
-            className={cx('bg-transparent border border-neutral-400', {
-              'hidden ': isFeatureHiddenOnTrash,
+          <div
+            className={cx('gap-1', {
+              'hidden md:flex': selectedImagesId.length === 0,
+              'flex ': selectedImagesId.length > 0,
             })}
-            onClick={() => {
-              setIsCopyModalOpen(true);
-            }}
           >
-            <DocumentDuplicateIcon className="w-5 text-neutral-200" />
-          </Button>
-          <Button
-            size="xs"
-            disabled={selectedImagesId.length === 0 || folders.length === 0}
-            className="bg-transparent border border-neutral-400"
-            onClick={() => {
-              setIsMoveModalOpen(true);
-            }}
-          >
-            <ArrowRightStartOnRectangleIcon className="w-5 text-neutral-200" />
-          </Button>
-          <Button
-            size="xs"
-            disabled={selectedImagesId.length === 0}
-            className="bg-transparent border border-neutral-400 py-0.5"
-            onClick={() => {
-              setIsDeleteModalOpen(true);
-            }}
-          >
-            <TrashIcon className="w-5 text-neutral-200" />
-          </Button>
-        </div>
-
-        <div
-          className={cx('flex gap-1', {
-            'md:flex hidden': selectedImagesId.length > 0,
-          })}
-        >
-          <div className="flex items-center justify-center">
             <Button
               size="xs"
-              className={cx('bg-transparent rounded-r-none border-r-0 border-neutral-400', {
-                '!bg-gray-300': state.isListView,
-              })}
-              onClick={() => {
-                changeState({ ...state, isListView: true });
-              }}
+              disabled={selectedImagesId.length === 0}
+              className="bg-transparent border border-neutral-400"
+              onClick={downloadMultiple}
             >
-              <ListBulletIcon
-                className={cx('w-5', {
-                  'text-neutral-700': state.isListView,
-                })}
-              />
+              <ArrowDownTrayIcon className="w-5 text-neutral-200" />
             </Button>
             <Button
               size="xs"
-              className={cx('bg-transparent rounded-l-none border-l-0 !border-neutral-400', {
-                '!bg-gray-200': !state.isListView,
+              disabled={selectedImagesId.length === 0 || folders.length === 0}
+              className={cx('bg-transparent border border-neutral-400', {
+                'hidden ': isFeatureHiddenOnTrash,
               })}
               onClick={() => {
-                changeState({ ...state, isListView: false });
+                setIsCopyModalOpen(true);
               }}
             >
-              <Squares2X2Icon
-                className={cx('w-5', {
-                  'text-neutral-700': !state.isListView,
-                })}
-              />
+              <DocumentDuplicateIcon className="w-5 text-neutral-200" />
+            </Button>
+            <Button
+              size="xs"
+              disabled={selectedImagesId.length === 0 || folders.length === 0}
+              className="bg-transparent border border-neutral-400"
+              onClick={() => {
+                setIsMoveModalOpen(true);
+              }}
+            >
+              <ArrowRightStartOnRectangleIcon className="w-5 text-neutral-200" />
+            </Button>
+            <Button
+              size="xs"
+              disabled={isDeleteDisabled}
+              className="bg-transparent border border-neutral-400 py-0.5"
+              onClick={() => {
+                setIsDeleteModalOpen(true);
+              }}
+            >
+              {isDeleteFolder ? (
+                <FolderMinusIcon className="w-5 text-neutral-200" />
+              ) : (
+                <TrashIcon className="w-5 text-neutral-200" />
+              )}
             </Button>
           </div>
+
           <div
             className={cx('flex gap-1', {
-              'hidden ': isFeatureHiddenOnTrash,
+              'md:flex hidden': selectedImagesId.length > 0,
             })}
           >
-            <FileInput
-              id="upload-image"
-              className="hidden"
-              multiple
-              accept="image/png, image/gif, image/jpeg"
-              onChange={uploadImage}
-            />
-            <Button
-              size={'xs'}
-              className="bg-transparent border border-neutral-400"
-              onClick={() => {
-                changeState({ openAddFolder: !state.openAddFolder });
-              }}
+            <div className="flex items-center justify-center">
+              <Button
+                size="xs"
+                className={cx('bg-transparent rounded-r-none border-r-0 border-neutral-400', {
+                  '!bg-gray-300': state.isListView,
+                })}
+                onClick={() => {
+                  changeState({ ...state, isListView: true });
+                }}
+              >
+                <ListBulletIcon
+                  className={cx('w-5', {
+                    'text-neutral-700': state.isListView,
+                  })}
+                />
+              </Button>
+              <Button
+                size="xs"
+                className={cx('bg-transparent rounded-l-none border-l-0 !border-neutral-400', {
+                  '!bg-gray-200': !state.isListView,
+                })}
+                onClick={() => {
+                  changeState({ ...state, isListView: false });
+                }}
+              >
+                <Squares2X2Icon
+                  className={cx('w-5', {
+                    'text-neutral-700': !state.isListView,
+                  })}
+                />
+              </Button>
+            </div>
+            <div
+              className={cx('flex gap-1', {
+                'hidden ': isFeatureHiddenOnTrash,
+              })}
             >
-              <FolderPlusIcon className="w-5 text-neutral-200" />
-              <span className="text-neutral-200 text-xs relative top-0.5"></span>
-            </Button>
-            <Button
-              size={'xs'}
-              className="bg-transparent border border-neutral-400"
-              onClick={() => {
-                document.getElementById('upload-image')?.click();
-              }}
-            >
-              <PhotoIcon className="w-5 text-neutral-200" />
-              <span className="text-neutral-200 text-xs relative top-0.5"></span>
-            </Button>
+              <FileInput
+                id="upload-image"
+                className="hidden"
+                multiple
+                accept="image/png, image/gif, image/jpeg"
+                onChange={uploadImage}
+              />
+              <Button
+                size={'xs'}
+                className="bg-transparent border border-neutral-400"
+                onClick={() => {
+                  changeState({ openAddFolder: !state.openAddFolder });
+                }}
+              >
+                <FolderPlusIcon className="w-5 text-neutral-200" />
+                <span className="text-neutral-200 text-xs relative top-0.5"></span>
+              </Button>
+              <Button
+                size={'xs'}
+                className="bg-transparent border border-neutral-400"
+                onClick={() => {
+                  document.getElementById('upload-image')?.click();
+                }}
+              >
+                <PhotoIcon className="w-5 text-neutral-200" />
+                <span className="text-neutral-200 text-xs relative top-0.5"></span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* RENAME MODAL */}
-      <Modal show={isRenameModalOpen} size="md" popup dismissible onClose={() => setIsRenameModalOpen(false)}>
-        <Modal.Header />
-        <Modal.Body>
-          <div className="text-center">
-            <PencilIcon className="text-neutral-500 w-14 mx-auto" />
-            <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">
-              Enter the new folder name
-            </h3>
-            <TextInput value={formAddFolderName} onChange={e => setFormAddFolderName(e.target.value)} />
-
-            <div className="flex justify-center gap-4 mt-6">
-              <Button
-                onClick={async () => {
-                  setIsRenameModalOpen(false);
-                  try {
-                    const formatedFolderName = formAddFolderName.trim();
-                    const res = await renameFolder(activeFolder, formatedFolderName);
-                    if (res) {
-                      const params = new URLSearchParams(window.location.search);
-                      params.set('folder', formatedFolderName);
-                      router.replace(`/album?${params.toString()}`);
-                      router.refresh();
-                    }
-                  } catch (e) {
-                    console.error(e);
-                  }
-                }}
-              >
-                Rename
-              </Button>
-              <Button
-                color="gray"
-                onClick={() => {
-                  setIsRenameModalOpen(false);
-                }}
-              >
-                No, cancel
-              </Button>
-            </div>
-          </div>
-        </Modal.Body>
-      </Modal>
-
-      {/* DELETE MODAL */}
-      <Modal show={isDeleteModalOpen} size="md" popup dismissible onClose={() => setIsDeleteModalOpen(false)}>
-        <Modal.Header />
-        <Modal.Body>
-          <div className="text-center">
-            <TrashIcon className="text-red-500 w-14 mx-auto" />
-            <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">
-              {fSelectedImagesId.length > 1
-                ? `Are you sure you want to ${isTrash ? 'permanently' : ''} delete ${fSelectedImagesId.length} images?`
-                : `Are you sure you want to ${isTrash ? 'permanently' : ''} delete this image?`}
-            </h3>
-
-            <div className="flex justify-center gap-4 mt-6">
-              <Button
-                color="red"
-                outline={false}
-                onClick={async () => {
-                  await deleteFilesFromServerHandler();
-                }}
-              >
-                Delete
-              </Button>
-              <Button
-                color="gray"
-                onClick={() => {
-                  setIsDeleteModalOpen(false);
-                }}
-              >
-                No, cancel
-              </Button>
-            </div>
-          </div>
-        </Modal.Body>
-      </Modal>
-
-      {/* COPY MODAL */}
-      <Modal show={isCopyModalOpen} size="md" popup dismissible onClose={() => setIsCopyModalOpen(false)}>
-        <Modal.Header />
-        <Modal.Body>
-          <div className="text-center">
-            <DocumentDuplicateIcon className="text-neutral-500 w-14 mx-auto" />
-            <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">
-              Select the destination folder
-            </h3>
-            <Select ref={rElDestinationFolder}>
-              {<option value="">Select a folder</option>}
-              {(activeFolder || isStarredOnly) && <option value={'/'}>/ (Root Directory)</option>}
-              {folders.map(folder => (
-                <option key={folder.name} value={folder.name} disabled={folder.name === activeFolder && !isStarredOnly}>
-                  {folder.name}
-                </option>
-              ))}
-            </Select>
-
-            <div className="flex justify-center gap-4 mt-6">
-              <Button
-                onClick={async () => {
-                  const value = rElDestinationFolder.current?.value;
-                  if (!value) return;
-
-                  await copyFilesFromServer(value, fSelectedImagesId);
-                  router.refresh();
-                }}
-              >
-                Copy
-              </Button>
-              <Button
-                color="gray"
-                onClick={() => {
-                  setIsCopyModalOpen(false);
-                }}
-              >
-                No, cancel
-              </Button>
-            </div>
-          </div>
-        </Modal.Body>
-      </Modal>
-
-      {/* MOVE MODAL */}
-      <Modal show={isMoveModalOpen} size="md" popup dismissible onClose={() => setIsMoveModalOpen(false)}>
-        <Modal.Header />
-        <Modal.Body>
-          <div className="text-center">
-            <ArrowRightStartOnRectangleIcon className="text-neutral-500 w-14 mx-auto" />
-            <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">
-              Select the destination folder
-            </h3>
-            <Select ref={rElDestinationFolder}>
-              {<option value="">Select a folder</option>}
-              {(activeFolder || isStarredOnly) && <option value={'/'}>/ (Root Directory)</option>}
-              {folders.map(folder => (
-                <option key={folder.name} value={folder.name} disabled={folder.name === activeFolder && !isStarredOnly}>
-                  {folder.name}
-                </option>
-              ))}
-            </Select>
-
-            <div className="flex justify-center gap-4 mt-6">
-              <Button
-                onClick={async () => {
-                  const value = rElDestinationFolder.current?.value;
-                  if (!value) return;
-
-                  await moveFilesFromServer(value, fSelectedImagesId);
-                  router.refresh();
-                }}
-              >
-                Move
-              </Button>
-              <Button
-                color="gray"
-                onClick={() => {
-                  setIsMoveModalOpen(false);
-                }}
-              >
-                No, cancel
-              </Button>
-            </div>
-          </div>
-        </Modal.Body>
-      </Modal>
-    </div>
+      <Modals
+        isCopyModalOpen={isCopyModalOpen}
+        setIsCopyModalOpen={setIsCopyModalOpen}
+        isMoveModalOpen={isMoveModalOpen}
+        setIsMoveModalOpen={setIsMoveModalOpen}
+        isDeleteModalOpen={isDeleteModalOpen}
+        setIsDeleteModalOpen={setIsDeleteModalOpen}
+        isRenameModalOpen={isRenameModalOpen}
+        setIsRenameModalOpen={setIsRenameModalOpen}
+        formAddFolderName={formAddFolderName}
+        setFormAddFolderName={setFormAddFolderName}
+        router={router}
+        activeFolder={activeFolder}
+        selectedImagesId={selectedImagesId}
+        isTrash={isTrash}
+        isAlbum={isAlbum}
+        isDeleteFolder={isDeleteFolder}
+        isStarredOnly={isStarredOnly}
+        folders={folders}
+        images={images}
+      />
+    </>
   );
 }
 
