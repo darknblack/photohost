@@ -5,6 +5,7 @@ import {
   TrashIcon,
   ArrowRightStartOnRectangleIcon,
   DocumentDuplicateIcon,
+  FolderMinusIcon,
 } from '@heroicons/react/24/outline';
 import { Button, Modal, TextInput, Select } from 'flowbite-react';
 import {
@@ -128,7 +129,11 @@ export default function Modals(props: Props) {
         <Modal.Header />
         <Modal.Body>
           <div className="text-center">
-            <TrashIcon className="text-red-500 w-14 mx-auto" />
+            {isDeleteFolder ? (
+              <FolderMinusIcon className="text-red-500 w-14 mx-auto" />
+            ) : (
+              <TrashIcon className="text-red-500 w-14 mx-auto" />
+            )}
             <h3 className="mb-5 text-lg font-normal text-neutral-500 dark:text-neutral-400">
               {isDeleteFolder
                 ? 'Are you sure you want to delete this folder?'
