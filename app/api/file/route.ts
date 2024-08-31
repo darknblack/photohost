@@ -6,7 +6,7 @@ import FilenameHandler from '@/app/server/FilenameHandler';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const filenameWithoutParam = searchParams.get('image') as string | null;
+  const filenameHash = searchParams.get('image') as string | null;
   const folder = searchParams.get('folder') as string | '';
   const thumb = searchParams.get('thumb') as string | null;
   const trash = searchParams.get('trash') as string | null;
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   const isTrash = !!trash;
 
   try {
-    const ext = (filenameWithoutParam && filenameWithoutParam.split('.').pop()?.toLocaleLowerCase()) || '';
+    const ext = (filenameHash && filenameHash.split('.').pop()?.toLocaleLowerCase()) || '';
 
     const headers = {
       headers: {
@@ -24,25 +24,25 @@ export async function GET(req: NextRequest) {
       },
     };
 
-    if (filenameWithoutParam && VALID_EXTENSIONS.includes(ext)) {
+    if (filenameHash && VALID_EXTENSIONS.includes(ext)) {
       if (isTrash && !isThumb) {
-        const res = await getFile('', filenameWithoutParam, DELETED_IMAGES_PATH, true);
+        const res = await getFile('', filenameHash, DELETED_IMAGES_PATH, true);
         if (res) {
           return new NextResponse(res, headers);
         }
       }
 
       if (!isThumb) {
-        const res = await getFile(folder, filenameWithoutParam, ALBUM_ROOT_PATH);
+        const res = await getFile(folder, filenameHash, ALBUM_ROOT_PATH);
         if (res) {
           return new NextResponse(res, headers);
         }
       } else {
-        const res = await getThumbFile(filenameWithoutParam);
+        const res = await getThumbFile(filenameHash);
         if (res) {
           return new NextResponse(res, headers);
         } else {
-          const res = await getFile(folder, filenameWithoutParam, ALBUM_ROOT_PATH);
+          const res = await getFile(folder, filenameHash, ALBUM_ROOT_PATH);
           if (res) {
             return new NextResponse(res, headers);
           }
@@ -62,10 +62,10 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ error: 'Failed to fetch image' }, { status: 400 });
 }
 
-async function getFile(folder: string, fileNameWithoutParam: string, basePath: string, isTrash: boolean = false) {
+async function getFile(folder: string, fileNameHash: string, basePath: string, isTrash: boolean = false) {
   const filename = isTrash
-    ? await FilenameHandler.getDeletedFileFromServer(fileNameWithoutParam)
-    : await FilenameHandler.getFileFromFolder(folder, fileNameWithoutParam);
+    ? await FilenameHandler.getDeletedFileFromServer(fileNameHash)
+    : await FilenameHandler.getFileFromFolder(folder, fileNameHash);
 
   if (filename) {
     const realpath = folder ? path.join(basePath, folder, filename) : path.join(basePath, filename);
@@ -75,8 +75,8 @@ async function getFile(folder: string, fileNameWithoutParam: string, basePath: s
   }
 }
 
-async function getThumbFile(filename: string) {
-  const fullPath = path.join(THUMBS_ROOT_PATH, filename);
+async function getThumbFile(filenameHash: string) {
+  const fullPath = path.join(THUMBS_ROOT_PATH, filenameHash);
   if (fs.existsSync(fullPath)) {
     return fs.readFileSync(fullPath);
   }

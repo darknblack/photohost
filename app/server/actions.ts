@@ -137,17 +137,16 @@ function loopImages(
   for (let i = 0; i < imagesInFolder.length; i++) {
     const imagePath = path.join(pathFolder, imagesInFolder[i]);
     const stat = fs.statSync(imagePath);
-
     const filenameWithParam = path.basename(imagePath);
     const isStar = FilenameHandler.paramCheck(filenameWithParam, 's');
-    const filenameWithoutParam = FilenameHandler.getFilenameWithoutParamAndExtension(filenameWithParam).join('.');
+    const hashFilename = FilenameHandler.generateHashFilename(filenameWithParam);
 
     const searchParamsObject: {
       image: string;
       folder?: string;
       thumb?: string;
     } = {
-      image: filenameWithoutParam,
+      image: hashFilename,
     };
 
     if (folder && !isTrash) {
@@ -165,7 +164,7 @@ function loopImages(
       path: `/api/file?${encodeObjectToQueryString(pathParams)}`,
       thumb: `/api/file?${encodeObjectToQueryString(thumbParams)}`,
       created: stat.birthtimeMs,
-      filename: filenameWithoutParam,
+      filename: hashFilename,
       isStar: isStar,
       folder: (!isTrash && folder) ?? '',
     };
@@ -205,31 +204,38 @@ export async function toggleStar(folder: string, filenameWithoutParam: string, t
 }
 
 export async function uploadImageOnServer(folder: string, formData: FormData) {
-  const file = formData.get('file');
-
-  // @ts-ignore
-  // Get the file extension
-  const ext = path.extname(file.name).toLowerCase().replace('.', '');
-
-  // Check if extension is valid
-  if (!VALID_EXTENSIONS.includes(ext)) return 'incorrect file';
-
-  // @ts-ignore
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const hash = await getHashValue(buffer);
-  const filename = `${Date.now()}-${hash}.${ext}`;
-
   fs.mkdirSync(ALBUM_ROOT_PATH, { recursive: true });
   fs.mkdirSync(THUMBS_ROOT_PATH, { recursive: true });
 
-  const imagePath = folder ? path.join(ALBUM_ROOT_PATH, folder, filename) : path.join(ALBUM_ROOT_PATH, filename);
-  const thumbPath = path.join(THUMBS_ROOT_PATH, filename);
+  const files = formData.getAll('files');
 
-  // Create the image and save it to disk
-  fs.writeFileSync(imagePath, buffer);
+  for (const file of files) {
+    try {
+      // Get the file extension
+      // @ts-ignore
+      const ext = path.extname(file.name).toLowerCase().replace('.', '');
+      // Check if extension is valid
+      if (!VALID_EXTENSIONS.includes(ext)) return 'incorrect file';
 
-  // Create the thumbnail and save it to disk
-  await ImageManipulation.downScale(sharp(buffer), thumbPath, 640, imagePath);
+      // @ts-ignore
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const hash = await getHashValue(buffer);
+      const filename = `${Date.now()}-${hash}.${ext}`;
+      const imagePath = folder ? path.join(ALBUM_ROOT_PATH, folder, filename) : path.join(ALBUM_ROOT_PATH, filename);
+
+      // Create the image and save it to disk
+      fs.writeFileSync(imagePath, buffer);
+
+      // Do not create thumbnail if it already exists
+      const thumbHashFilename = FilenameHandler.generateHashFilename(filename);
+      const fullThumbPath = path.join(THUMBS_ROOT_PATH, thumbHashFilename);
+      if (!fs.existsSync(fullThumbPath)) {
+        await ImageManipulation.downScale(sharp(buffer), fullThumbPath, 640);
+      }
+      // Create the thumbnail and save it to disk
+    } catch (e) {}
+  }
+
   return 1;
 }
 

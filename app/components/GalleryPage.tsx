@@ -57,16 +57,12 @@ const GalleryPage = (props: Props) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const formData = new FormData();
     for (let i = 0; files.length > i; i++) {
       const file = files[i];
-      const formData = new FormData();
-      formData.append('file', file);
-
-      try {
-        const res = await uploadImageOnServer(activeFolder, formData);
-      } catch (e) {}
+      formData.append('files', file);
     }
-
+    await uploadImageOnServer(activeFolder, formData);
     router.refresh();
   });
 

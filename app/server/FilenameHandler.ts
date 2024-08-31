@@ -43,22 +43,23 @@ const FilenameHandler = {
 
     return [`${date}-${hash}`, ext.replace('.', '')];
   },
-  async getFileFromFolder(folder: string, filename: string): Promise<string | undefined> {
+  async getFileFromFolder(folder: string, filenameHash: string): Promise<string | undefined> {
     const basePath = folder ? path.join(ALBUM_ROOT_PATH, folder) : ALBUM_ROOT_PATH;
     const files = await fs.readdir(basePath);
-    const file = files.find(
-      file =>
-        this.getFilenameWithoutParamAndExtension(file).join('.').toLocaleLowerCase() === filename.toLocaleLowerCase()
-    );
+    const file = files.find(file => this.generateHashFilename(file) === filenameHash);
     return file;
   },
-  async getDeletedFileFromServer(filename: string): Promise<string | undefined> {
+  async getDeletedFileFromServer(filenameHash: string): Promise<string | undefined> {
     const files = await fs.readdir(DELETED_IMAGES_PATH);
-    const file = files.find(
-      file =>
-        this.getFilenameWithoutParamAndExtension(file).join('.').toLocaleLowerCase() === filename.toLocaleLowerCase()
-    );
+    const file = files.find(file => this.generateHashFilename(file) === filenameHash);
     return file;
+  },
+  generateHashFilename(filename: string) {
+    const basename = path.basename(filename);
+    const ext = path.extname(filename);
+    const [, hash] = basename.split('-');
+    const filenameHash = `${hash.replace(ext, '')}${ext}`;
+    return filenameHash;
   },
 };
 
