@@ -6,7 +6,7 @@ export const STARRED_JSON_PATH = path.join(BASE_STORED_PATH, 'album', 'starred-l
 export const ALBUM_ROOT_PATH = path.join(BASE_STORED_PATH, 'album');
 export const DELETED_IMAGES_PATH = path.join(BASE_STORED_PATH, 'trash');
 export const THUMBS_ROOT_PATH = path.join(BASE_STORED_PATH, 'thumbs');
-export const ZIP_PATH = path.join('zip');
+export const ZIP_PATH = path.join(BASE_STORED_PATH, 'zip');
 export const VALID_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
 
 export function getHashValue(buffer: Buffer) {
