@@ -233,18 +233,28 @@ export async function uploadImageOnServer(folder: string, formData: FormData) {
       if (!fs.existsSync(fullThumbPath)) {
         await ImageManipulation.downScale(sharp(buffer), fullThumbPath, 640);
       }
-      // Create the thumbnail and save it to disk
     } catch (e) {
       // Handle error
       console.error('Error processing file:', e);
     }
   };
 
-  // Processing files in batches of 2
-  for (let i = 0; i < files.length; i += 2) {
-    const batch = files.slice(i, i + 2);
-    await Promise.all(batch.map(file => processFile(file)));
+  // To always process 2 images at the same time
+  let promises: Promise<any>[] = [];
+  for (const file of files) {
+    const promise = processFile(file);
+    promises.push(promise);
+
+    // If there are at least 2 promises, wait for the first one to complete
+    if (promises.length >= 3) {
+      await Promise.race(promises);
+      // Remove resolved promises from the list
+      promises = promises.filter(p => p !== promise);
+    }
   }
+
+  // Wait for any remaining promises to resolve
+  await Promise.all(promises);
 
   return 1;
 }
