@@ -246,7 +246,7 @@ export async function uploadImageOnServer(folder: string, formData: FormData) {
     promises.push(promise);
 
     // If there are at least 2 promises, wait for the first one to complete
-    if (promises.length >= 3) {
+    if (promises.length >= 4) {
       await Promise.race(promises);
       // Remove resolved promises from the list
       promises = promises.filter(p => p !== promise);
