@@ -23,7 +23,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-intersection-observer": "^9.8.2",
-    "sharp": "^0.32.6",
+    "sharp": "^0.33.5",
     "ua-parser-js": "^1.0.38",
     "zustand": "^4.5.2"
   },
