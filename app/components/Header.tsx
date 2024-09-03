@@ -103,7 +103,7 @@ function Header(props: Props) {
     }
   });
 
-  const isDeleteFolder = isAlbum && images.length === 0 && activeFolder;
+  const isDeleteFolder = !!(activeFolder && isAlbum && images.length === 0);
   const isDeleteDisabled = (() => {
     if (isStarredOnly && selectedImagesId.length === 0) return true;
     if (isAlbum && activeFolder === '' && selectedImagesId.length === 0) return true;
