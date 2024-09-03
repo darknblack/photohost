@@ -209,7 +209,8 @@ export async function uploadImageOnServer(folder: string, formData: FormData) {
 
   const files = formData.getAll('files');
 
-  for (const file of files) {
+  // Function to process a single file
+  const processFile = async (file: any) => {
     try {
       // Get the file extension
       // @ts-ignore
@@ -233,7 +234,16 @@ export async function uploadImageOnServer(folder: string, formData: FormData) {
         await ImageManipulation.downScale(sharp(buffer), fullThumbPath, 640);
       }
       // Create the thumbnail and save it to disk
-    } catch (e) {}
+    } catch (e) {
+      // Handle error
+      console.error('Error processing file:', e);
+    }
+  };
+
+  // Processing files in batches of 2
+  for (let i = 0; i < files.length; i += 2) {
+    const batch = files.slice(i, i + 2);
+    await Promise.all(batch.map(file => processFile(file)));
   }
 
   return 1;
