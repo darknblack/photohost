@@ -20,6 +20,8 @@ import { cookies } from 'next/headers';
 import { UAParser } from 'ua-parser-js';
 import { headers } from 'next/headers';
 
+sharp.cache(false);
+
 interface GetImagesProps {
   folder?: string;
   page?: number;
