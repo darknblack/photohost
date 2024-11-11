@@ -527,7 +527,7 @@ class PhotoStorage {
   /**
    * Check if thumbnails already exist for a given hash
    */
-  private async findExistingThumbnails(hash: string): Promise<Boolean | null> {
+  private async findExistingThumbnails(hash: string): Promise<ThumbnailInfo | null> {
     try {
       const response = await this.client.send(
         new HeadObjectCommand({
@@ -536,10 +536,20 @@ class PhotoStorage {
         })
       );
 
-      return response.$metadata.httpStatusCode === 200;
+      if (response.$metadata.httpStatusCode === 200) {
+        return {
+          hash: hash,
+          urls: {
+            small: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/small.jpg`,
+            large: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/large.jpg`,
+          },
+        };
+      }
     } catch (error) {
       return null;
     }
+
+    return null;
   }
 
   /**
@@ -551,7 +561,6 @@ class PhotoStorage {
   ): Promise<ThumbnailInfo> {
     const existingThumbnails = await this.findExistingThumbnails(hash);
     if (existingThumbnails) {
-      console.log('Reusing existing thumbnails for hash:', hash);
       return existingThumbnails;
     }
 
