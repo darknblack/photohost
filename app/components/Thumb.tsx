@@ -108,7 +108,7 @@ function Thumb(props: Props) {
             className={cx(
               'group-hover/thumb:block hidden button-w-action transition-all',
               'p-2 rounded-full',
-              'border-1 border-neutral-100 bg-neutral-500 bg-opacity-75 text-neutral-200 ',
+              'border-1 border-neutral-100 bg-neutral-500 bg-opacity-70 text-neutral-300',
               'hover:bg-opacity-100 hover:scale-105'
             )}
             onClick={onClickDownload}

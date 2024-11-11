@@ -19,6 +19,7 @@ import checkDiskSpace from 'check-disk-space';
 import { cookies } from 'next/headers';
 import { UAParser } from 'ua-parser-js';
 import { headers } from 'next/headers';
+import photoStorage from '@/util/photo-storage';
 
 interface GetImagesProps {
   folder?: string;
@@ -223,6 +224,9 @@ export async function uploadImageOnServer(folder: string, formData: FormData) {
       const hash = await getHashValue(buffer);
       const filename = `${Date.now()}-${hash}.${ext}`;
       const imagePath = folder ? path.join(ALBUM_ROOT_PATH, folder, filename) : path.join(ALBUM_ROOT_PATH, filename);
+
+
+      photoStorage.uploadPhoto(buffer, filename, folder);
 
       // Create the image and save it to disk
       fs.writeFileSync(imagePath, buffer);

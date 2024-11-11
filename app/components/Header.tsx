@@ -166,7 +166,7 @@ function Header(props: Props) {
         <div className="flex gap-1">
           <Button
             size="xs"
-            className={cx('bg-transparent py-1 border border-neutral-400 min-w-[5rem] transition-all')}
+            className={cx('bg-transparent py-1 border border-neutral-600 min-w-[5rem] transition-all')}
             onClick={() => {
               if (!isSelecting) {
                 setIsSelecting(true);
@@ -190,7 +190,7 @@ function Header(props: Props) {
             <Button
               size="xs"
               disabled={selectedImagesId.length === 0}
-              className="bg-transparent border border-neutral-400"
+              className="bg-transparent border border-neutral-600"
               onClick={downloadMultiple}
             >
               <ArrowDownTrayIcon className="w-5 text-neutral-200" />
@@ -198,7 +198,7 @@ function Header(props: Props) {
             <Button
               size="xs"
               disabled={selectedImagesId.length === 0 || folders.length === 0}
-              className={cx('bg-transparent border border-neutral-400', {
+              className={cx('bg-transparent border border-neutral-600', {
                 'hidden ': isFeatureHiddenOnTrash,
               })}
               onClick={() => {
@@ -210,7 +210,7 @@ function Header(props: Props) {
             <Button
               size="xs"
               disabled={selectedImagesId.length === 0 || folders.length === 0}
-              className="bg-transparent border border-neutral-400"
+              className="bg-transparent border border-neutral-600"
               onClick={() => {
                 setIsMoveModalOpen(true);
               }}
@@ -220,7 +220,7 @@ function Header(props: Props) {
             <Button
               size="xs"
               disabled={isDeleteDisabled}
-              className="bg-transparent border border-neutral-400 py-0.5"
+              className="bg-transparent border border-neutral-600 py-0.5"
               onClick={() => {
                 setIsDeleteModalOpen(true);
               }}
@@ -241,7 +241,7 @@ function Header(props: Props) {
             <div className="flex items-center justify-center">
               <Button
                 size="xs"
-                className={cx('bg-transparent rounded-r-none border-r-0 border-neutral-400', {
+                className={cx('bg-transparent rounded-r-none border-r-0 border-neutral-600', {
                   '!bg-gray-300': state.isListView,
                 })}
                 onClick={() => {
@@ -256,7 +256,7 @@ function Header(props: Props) {
               </Button>
               <Button
                 size="xs"
-                className={cx('bg-transparent rounded-l-none border-l-0 !border-neutral-400', {
+                className={cx('bg-transparent rounded-l-none border-l-0 !border-neutral-600', {
                   '!bg-gray-200': !state.isListView,
                 })}
                 onClick={() => {
@@ -284,23 +284,23 @@ function Header(props: Props) {
               />
               <Button
                 size={'xs'}
-                className="bg-transparent border border-neutral-400"
+                className="bg-transparent border border-neutral-600"
                 onClick={() => {
                   changeState({ openAddFolder: !state.openAddFolder });
                 }}
               >
-                <FolderPlusIcon className="w-5 text-neutral-200" />
-                <span className="text-neutral-200 text-xs relative top-0.5"></span>
+                <FolderPlusIcon className="w-5 text-neutral-" />
+                <span className="text-neutral- text-xs relative top-0.5"></span>
               </Button>
               <Button
                 size={'xs'}
-                className="bg-transparent border border-neutral-400"
+                className="bg-transparent border border-neutral-600"
                 onClick={() => {
                   document.getElementById('upload-image')?.click();
                 }}
               >
-                <PhotoIcon className="w-5 text-neutral-200" />
-                <span className="text-neutral-200 text-xs relative top-0.5"></span>
+                <PhotoIcon className="w-5 text-neutral-" />
+                <span className="text-neutral- text-xs relative top-0.5"></span>
               </Button>
             </div>
           </div>

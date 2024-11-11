@@ -32,13 +32,14 @@ function formatBytes(bytes: number, decimals = 2) {
 export default async function LandingPage() {
   return (
     <>
-      <div className="flex justify-between mx-auto w-[72rem] h-20 items-center text-lg">
+      <div className="flex justify-between mx-auto w-[72rem] h-20 items-center">
         <div className="font-[900] text-2xl text-white">Photohost.io</div>
-        <div className="flex gap-6 items-center">
-          <div className="font-[400] px-3 py-2 text-neutral-400">FAQ</div>
-          <div className="font-[400] px-3 py-2 text-neutral-400">Features</div>
+        <div className="flex gap-6 items-center font-[600]">
+          <div className="px-3 py-2 text-neutral-400">Features</div>
           <div className="bg-yellow-300 rounded px-5 py-1 flex items-center">
-            <div className="text-yellow-700">Login</div>
+            <Link href="/album" className="text-yellow-700">
+              Login
+            </Link>
           </div>
         </div>
       </div>
@@ -53,12 +54,13 @@ export default async function LandingPage() {
               accessible anywhere.
             </div>
             <div className="flex gap-2">
-              <button className="py-3 px-6 bg-yellow-300 rounded-md text-yellow-700 font-[600] flex items-center gap-2">
+              <Link
+                href="/album"
+                className="py-3 px-6 bg-yellow-300 rounded-md text-yellow-700 font-[600] flex items-center gap-2"
+              >
                 Get started <ArrowLongRightIcon className="w-6 h-6" />
-              </button>
-              <button className="py-3 px-6 bg-neutral-800 text-neutral-400 rounded-md font-[600]">
-                Request a demo
-              </button>
+              </Link>
+              <button className="py-3 px-6 bg-neutral-800 text-neutral-400 rounded-md font-[600]">Demo</button>
             </div>
           </div>
           <div className="flex flex-col pl-16 pb-6 justify-end items-end">
@@ -67,7 +69,7 @@ export default async function LandingPage() {
                 style={{
                   transform: 'skewX(0deg) skewY(-3deg)',
                 }}
-                className="border border-neutral-900 p-1 shadow-sm shadow-neutral-700"
+                className="border border-neutral-900 p-1"
               >
                 <img className="object-cover" src={imgheader.src} alt="hero" />
               </div>
@@ -77,9 +79,9 @@ export default async function LandingPage() {
         </div>
       </div>
       <div className="bg-neutral-950 py-16">
-        <div className="w-[72rem] mx-auto pb-10">
-          <h2 className="text-2xl font-[500] text-neutral-200">Features</h2>
-          <div className="text-xl text-neutral-500">Improving photographer's workflow experience. </div>
+        <div className="w-[72rem] mx-auto pb-10 flex flex-col gap-2">
+          <h2 className="text-2xl font-[500] text-neutral-200">App Features</h2>
+          <div className="text-xl text-neutral-500">Professional tools for efficient photo management. </div>
         </div>
         <div className="w-[72rem] mx-auto grid grid-cols-3 gap-6">
           <CardFeature
@@ -104,7 +106,7 @@ export default async function LandingPage() {
           />
           <CardFeature
             title="Share to Public"
-            description="Give access to your photos to anyone you choose."
+            description="Give access to your album to anyone you choose."
             icon={<ShareIcon className="w-full h-full text-yellow-700" />}
           />
         </div>
@@ -127,6 +129,11 @@ export default async function LandingPage() {
             description="Photos are cached using Cloudflare's CDN"
             icon={<ServerStackIcon className="w-full h-full" />}
           />
+          <CardFeature2
+            title="Firebase"
+            description="Authentication and Database"
+            icon={<ServerStackIcon className="w-full h-full" />}
+          />
         </div>
       </div>
       <div id="footer" className="h-20 w-[72rem] mx-auto items-center text-neutral-500 flex gap-2">
@@ -141,7 +148,7 @@ export default async function LandingPage() {
 
 function CardFeature(props: { title: string; description: string; icon: React.ReactNode }) {
   return (
-    <div className="px-5 py-5 gap-4 bg-neutral-900 flex rounded-md shadow-md">
+    <div className="px-5 py-5 gap-4 bg-neutral-900 flex rounded-md">
       <div className="rounded-md bg-yellow-300 flex items-center justify-center h-11 w-11 p-2 mt-1">{props.icon}</div>
       <div className="flex-1 flex flex-col">
         <div className="font-[500] text-xl text-neutral-300">{props.title}</div>
@@ -152,7 +159,7 @@ function CardFeature(props: { title: string; description: string; icon: React.Re
 }
 function CardFeature2(props: { title: string; description: string; icon: React.ReactNode }) {
   return (
-    <div className="px-4 py-4 gap-4 bg-neutral-950 border border-neutral-900 flex rounded-md shadow-md">
+    <div className="px-4 py-4 gap-4 bg-neutral-950 border border-neutral-900 flex rounded-md">
       <div className="rounded-md flex items-center justify-center h-11 w-11 p-2 mt-1">{props.icon}</div>
       <div className="flex-1 flex flex-col">
         <div className="font-[500] text-xl text-neutral-300">{props.title}</div>
