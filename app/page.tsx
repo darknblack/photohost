@@ -1,33 +1,16 @@
 import {
-  FolderIcon,
   FolderOpenIcon,
   GlobeAsiaAustraliaIcon,
-  StarIcon,
-  TrashIcon,
   ShareIcon,
   BeakerIcon,
-  PhotoIcon,
   ArrowLongRightIcon,
   ServerStackIcon,
   CommandLineIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { getDiskSpace } from './server/actions';
 import imgheader from './angel thumb.png';
 
 export const dynamic = 'force-dynamic';
-
-function formatBytes(bytes: number, decimals = 2) {
-  if (!+bytes) return '0 Bytes';
-
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
-
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-}
 
 export default async function LandingPage() {
   return (
@@ -138,7 +121,7 @@ export default async function LandingPage() {
       </div>
       <div id="footer" className="h-20 w-[72rem] mx-auto items-center text-neutral-500 flex gap-2">
         <div>
-          &copy; 2024 <span className="text-neutral-300 font-[500]">Photohost.io.</span>
+          2024 &copy; <span className="text-neutral-300 font-[500]">Photohost.io.</span>
         </div>
         <div>Developed by Ian Oderon</div>
       </div>
@@ -164,59 +147,6 @@ function CardFeature2(props: { title: string; description: string; icon: React.R
       <div className="flex-1 flex flex-col">
         <div className="font-[500] text-xl text-neutral-300">{props.title}</div>
         <div className="text-neutral-500">{props.description}</div>
-      </div>
-    </div>
-  );
-}
-
-async function Home() {
-  const diskSpace = await getDiskSpace();
-
-  return (
-    <div className="flex items-center justify-center min-w-[100vw] min-h-[100vh]">
-      <div>
-        <div className="flex flex-col">
-          <div className="text-5xl text-neutral-200">Photohost.io</div>
-          <div className="font-mono text-lg text-neutral-400">Your Photos, Organized Beautifully.</div>
-          <div>
-            Store, edit, and share your memories with ease. The modern way to keep your photos organized and accessible
-            anywhere.
-          </div>
-        </div>
-        <div className="flex flex-wrap py-4 gap-4 text-neutral-300">
-          <Link
-            href="/album"
-            className="w-80 h-80 border border-neutral-500 rounded-md flex flex-col justify-center items-center"
-          >
-            <div>
-              <FolderIcon className="w-20 h-20 mb-1" />
-            </div>
-            <div>View your album</div>
-          </Link>
-          <Link
-            href="/starred"
-            className="w-80 h-80 border border-neutral-500 rounded-md flex flex-col justify-center items-center"
-          >
-            <div>
-              <StarIcon className="w-20 h-20 mb-1" />
-            </div>
-            <div>View starred images</div>
-          </Link>
-          <Link
-            href="/trash"
-            className="w-80 h-80 border border-neutral-500 rounded-md flex flex-col justify-center items-center"
-          >
-            <div>
-              <TrashIcon className="w-20 h-20 mb-1" />
-            </div>
-            <div>View deleted images</div>
-          </Link>
-        </div>
-        <div className="text-neutral-500">
-          <div>
-            Disk Storage: {formatBytes(diskSpace.size - diskSpace.free)} / {formatBytes(diskSpace.size)}
-          </div>
-        </div>
       </div>
     </div>
   );
