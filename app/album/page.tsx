@@ -1,5 +1,6 @@
 import GalleryPage from '@/app/components/GalleryPage';
 import { getAllFolders, getImages, getServerSidebarState, isMobileDevice } from '@/app/server/actions';
+import photoStorage from '@/util/photo-storage';
 
 type searchParams = {
   [key: string]: string | string[] | undefined;
@@ -13,6 +14,13 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
   const isStarredOnly: boolean = !!(((searchParams && searchParams['starred']) ?? '') as string);
 
   activePage = !activePage ? 1 : activePage;
+
+  // const images = await photoStorage.listPhotos({
+  //   folder: activeFolder,
+  //   limit: 50,
+  // });
+
+  // console.log('images', JSON.stringify(images.photos));
 
   const images = await getImages({
     page: Number(activePage),

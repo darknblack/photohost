@@ -37,7 +37,7 @@ interface Props {
   isDeleteFolder: boolean;
   isStarredOnly: boolean;
   selectedImagesId: string[];
-  folders: Folder[];
+  folders: string[];
   images: Image[];
 }
 
@@ -188,8 +188,8 @@ export default function Modals(props: Props) {
               {<option value="">Select a folder</option>}
               {(activeFolder || isStarredOnly) && <option value={'/'}>/ (Root Directory)</option>}
               {folders.map(folder => (
-                <option key={folder.name} value={folder.name} disabled={folder.name === activeFolder && !isStarredOnly}>
-                  {folder.name}
+                <option key={folder} value={folder} disabled={folder === activeFolder && !isStarredOnly}>
+                  {folder}
                 </option>
               ))}
             </Select>
@@ -231,8 +231,8 @@ export default function Modals(props: Props) {
               {<option value="">Select a folder</option>}
               {(activeFolder || isStarredOnly) && <option value={'/'}>/ (Root Directory)</option>}
               {folders.map(folder => (
-                <option key={folder.name} value={folder.name} disabled={folder.name === activeFolder && !isStarredOnly}>
-                  {folder.name}
+                <option key={folder} value={folder} disabled={folder === activeFolder && !isStarredOnly}>
+                  {folder}
                 </option>
               ))}
             </Select>

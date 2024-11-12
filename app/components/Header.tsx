@@ -41,7 +41,7 @@ interface Props {
   selectAllImages: () => void;
   isAllSelected: boolean;
   images: Image[];
-  folders: Folder[];
+  folders: string[];
   isStarredOnly: boolean;
   pathname: string;
   toggleSidebar: () => void;

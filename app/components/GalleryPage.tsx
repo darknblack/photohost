@@ -21,7 +21,7 @@ interface Props {
     images: Image[];
     total: number;
   };
-  folders: Folder[];
+  folders: string[];
   activeFolder: string;
   isStarredOnly: boolean;
   cPage: number;
@@ -70,7 +70,9 @@ const GalleryPage = (props: Props) => {
     try {
       const res = await addFolderToServer(state.folderName);
       router.refresh();
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+    }
 
     setState({
       ...state,
@@ -195,13 +197,13 @@ const GalleryPage = (props: Props) => {
                 pathname !== '/trash' &&
                 folders.map(folder => (
                   <Link
-                    key={folder.name}
-                    href={{ pathname: '/album', query: { folder: folder.name } }}
-                    as={{ pathname: '/album', query: { folder: folder.name } }}
+                    key={folder}
+                    href={{ pathname: '/album', query: { folder: folder } }}
+                    as={{ pathname: '/album', query: { folder: folder } }}
                     className="flex items-center justify-center flex-col group/folder"
                   >
                     <FolderIcon className="text-neutral-400 w-20 group-hover/folder:text-neutral-300" />
-                    <h3 className="text-center text-neutral-300 group-hover/folder:text-neutral-200">{folder.name}</h3>
+                    <h3 className="text-center text-neutral-300 group-hover/folder:text-neutral-200">{folder}</h3>
                   </Link>
                 ))}
               {state.images.map(image => {

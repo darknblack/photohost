@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { memo } from 'react';
 
 interface Props {
-  folders: Folder[];
+  folders: string[];
   activeFolder: string;
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
@@ -59,25 +59,25 @@ function Sidebar(props: Props) {
                 <div className="py-2 flex flex-col px-0.5">
                   {folders.map(folder => (
                     <div
-                      key={folder.name}
+                      key={folder}
                       className={cx('border-l border-l-neutral-900 flex justify-between', {
-                        '!border-l-neutral-700': folder.name === activeFolder,
+                        '!border-l-neutral-700': folder === activeFolder,
                       })}
                     >
                       <div className="flex gap-2 px-3 py-1">
                         <FolderIcon
                           className={cx('text-neutral-500 w-5 h-5 shrink-0', {
-                            '!text-neutral-300': folder.name === activeFolder,
+                            '!text-neutral-300': folder === activeFolder,
                           })}
                         />
                         <div>
                           <Link
                             className={cx('text-sm text-neutral-500', {
-                              '!text-neutral-300': folder.name === activeFolder,
+                              '!text-neutral-300': folder === activeFolder,
                             })}
-                            href={`/album?folder=${encodeURIComponent(folder.name)}`}
+                            href={`/album?folder=${encodeURIComponent(folder)}`}
                           >
-                            {folder.name} <span className={cx('text-xs text-neutral-600')}>({folder.count})</span>
+                            {folder}
                           </Link>
                         </div>
                       </div>

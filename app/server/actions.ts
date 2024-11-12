@@ -1,18 +1,9 @@
 'use server';
 
-import {
-  DELETED_IMAGES_PATH,
-  ALBUM_ROOT_PATH,
-  THUMBS_ROOT_PATH,
-  VALID_EXTENSIONS,
-  ZIP_PATH,
-  getHashValue,
-} from '@/util/fs-utils';
-import ImageManipulation from '@/util/image-manipulation';
+import { DELETED_IMAGES_PATH, ALBUM_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS, ZIP_PATH } from '@/util/fs-utils';
 import fs from 'fs';
 import { revalidatePath } from 'next/cache';
 import path, { basename } from 'path';
-import sharp from 'sharp';
 import FilenameHandler from '@/app/server/FilenameHandler';
 import archiver from 'archiver';
 import checkDiskSpace from 'check-disk-space';
@@ -55,7 +46,7 @@ export async function getStarredImages(
 
   for (let i = 0; i < allFolders.length; i++) {
     const folder = allFolders[i];
-    const pathFolder = path.join(ALBUM_ROOT_PATH, folder.name);
+    const pathFolder = path.join(ALBUM_ROOT_PATH, folder);
 
     const imagesInFolder = fs
       .readdirSync(pathFolder)
@@ -69,7 +60,7 @@ export async function getStarredImages(
         return Number(bMs) - Number(aMs);
       });
 
-    loopImages(pathFolder, imagesInFolder, folder.name, images);
+    loopImages(pathFolder, imagesInFolder, folder, images);
   }
 
   return {
@@ -174,23 +165,20 @@ function loopImages(
   }
 }
 
-export async function getAllFolders(): Promise<
-  {
-    name: string;
-    count: number;
-  }[]
-> {
-  fs.mkdirSync(ALBUM_ROOT_PATH, { recursive: true });
+export async function getAllFolders(): Promise<string[]> {
+  let folders: string[] = [];
+  let nextCursor: string | undefined = undefined;
 
-  const folders = fs
-    .readdirSync(ALBUM_ROOT_PATH, { withFileTypes: true })
-    .filter(item => item.isDirectory())
-    .map(item => {
-      return {
-        name: item.name,
-        count: fs.readdirSync(path.join(ALBUM_ROOT_PATH, item.name)).length,
-      };
-    });
+  while (true) {
+    const f = await photoStorage.listFolders(nextCursor);
+    folders.push(...f.folders);
+
+    if (!f.nextCursor) {
+      break;
+    }
+
+    nextCursor = f.nextCursor;
+  }
 
   return folders;
 }
@@ -219,24 +207,8 @@ export async function uploadImageOnServer(folder: string, formData: FormData) {
       // Check if extension is valid
       if (!VALID_EXTENSIONS.includes(ext)) return 'incorrect file';
 
-      // @ts-ignore
       const buffer = Buffer.from(await file.arrayBuffer());
-      const hash = await getHashValue(buffer);
-      const filename = `${Date.now()}-${hash}.${ext}`;
-      const imagePath = folder ? path.join(ALBUM_ROOT_PATH, folder, filename) : path.join(ALBUM_ROOT_PATH, filename);
-
-
-      photoStorage.uploadPhoto(buffer, filename, folder);
-
-      // Create the image and save it to disk
-      fs.writeFileSync(imagePath, buffer);
-
-      // Do not create thumbnail if it already exists
-      const thumbHashFilename = FilenameHandler.generateHashFilename(filename);
-      const fullThumbPath = path.join(THUMBS_ROOT_PATH, thumbHashFilename);
-      if (!fs.existsSync(fullThumbPath)) {
-        await ImageManipulation.downScale(sharp(buffer), fullThumbPath, 640);
-      }
+      await photoStorage.uploadPhoto(buffer, file.name, folder);
     } catch (e) {
       // Handle error
       console.error('Error processing file:', e);
@@ -264,6 +236,7 @@ export async function uploadImageOnServer(folder: string, formData: FormData) {
 }
 
 export async function addFolderToServer(folder: string) {
+  await photoStorage.createFolder(folder);
   fs.mkdirSync(path.join(ALBUM_ROOT_PATH, folder), { recursive: true });
   fs.mkdirSync(path.join(THUMBS_ROOT_PATH), { recursive: true });
 }

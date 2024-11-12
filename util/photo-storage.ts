@@ -10,17 +10,17 @@ import {
 import { randomUUID } from 'crypto';
 import { blake3 } from 'hash-wasm';
 import sharp from 'sharp';
+import ImageManipulation from './image-manipulation';
+import path from 'path';
 
 interface ThumbnailSizes {
   small: { width: number; height: number };
-  large: { width: number; height: number };
 }
 
 interface ThumbnailInfo {
   hash: string;
   urls: {
     small: string;
-    large: string;
   };
 }
 
@@ -30,7 +30,6 @@ interface PhotoMetadata {
   contentType: string;
   size: number;
   hash: string;
-  thumbnailHash: string; // Hash of the original image used for thumbnail
   uploadedAt: string;
   folder: string;
   tags?: string[];
@@ -45,7 +44,6 @@ interface PhotoRecord {
   url: string;
   thumbnails: {
     small: string;
-    large: string;
   };
 }
 
@@ -77,6 +75,16 @@ interface ListFoldersResponse {
   nextCursor?: string;
 }
 
+function getContentType(filename: string) {
+  const ext = path.extname(filename).toLowerCase();
+  if (ext === '.jpg' || ext === '.jpeg') {
+    return 'image/jpeg';
+  } else if (ext === '.png') {
+    return 'image/png';
+  } else if (ext === '.gif') {
+    return 'image/gif';
+  }
+}
 class PhotoStorage {
   private client: S3Client;
   private bucket: string;
@@ -84,10 +92,6 @@ class PhotoStorage {
   private static readonly CONTENT_PREFIX = 'content/';
   private static readonly FOLDER_INDEX_PREFIX = 'folders/';
   private static readonly THUMBNAIL_PREFIX = 'thumbnails/';
-  private static readonly THUMBNAIL_SIZES: ThumbnailSizes = {
-    small: { width: 150, height: 150 },
-    large: { width: 600, height: 600 },
-  };
 
   constructor(accountId: string, accessKeyId: string, secretAccessKey: string, bucket: string) {
     this.bucket = bucket;
@@ -162,7 +166,7 @@ class PhotoStorage {
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
-        Key: `${PhotoStorage.METADATA_PREFIX}${folderPath}/${metadata.id}.json`,
+        Key: `${PhotoStorage.METADATA_PREFIX}${folderPath}/${metadata.hash}.json`,
         Body: JSON.stringify(metadata),
         ContentType: 'application/json',
       })
@@ -195,7 +199,6 @@ class PhotoStorage {
     fileName: string,
     folder: string,
     options: {
-      contentType?: string;
       tags?: string[];
     } = {}
   ): Promise<PhotoRecord> {
@@ -212,16 +215,17 @@ class PhotoStorage {
       }
 
       // Generate thumbnails
-      const { thumbnails, hash: thumbnailHash } = await this.generateThumbnails(file);
+      const thumbnails = await this.generateThumbnails(file);
 
       // Store thumbnails (this will reuse existing ones if available)
-      const thumbnailInfo = await this.storeThumbnails(thumbnailHash, thumbnails);
+      const thumbnailInfo = await this.storeThumbnails(hash, thumbnails);
 
       const id = randomUUID();
-      const key = `${PhotoStorage.CONTENT_PREFIX}${sanitizedFolder}/${id}`;
+      const key = `${PhotoStorage.CONTENT_PREFIX}${sanitizedFolder}/${hash}`;
 
       // Get image dimensions
       const dimensions = await sharp(file).metadata();
+      const contentType = getContentType(fileName) || 'image/jpeg';
 
       // Upload the actual file
       await this.client.send(
@@ -229,7 +233,7 @@ class PhotoStorage {
           Bucket: this.bucket,
           Key: key,
           Body: file,
-          ContentType: options.contentType || 'image/jpeg',
+          ContentType: contentType,
         })
       );
 
@@ -237,10 +241,9 @@ class PhotoStorage {
       const metadata: PhotoMetadata = {
         id,
         originalName: fileName,
-        contentType: options.contentType || 'image/jpeg',
+        contentType: contentType,
         size: file.length,
         hash,
-        thumbnailHash,
         uploadedAt: new Date().toISOString(),
         folder: sanitizedFolder,
         tags: options.tags,
@@ -257,7 +260,6 @@ class PhotoStorage {
         url: `https://${this.bucket}.r2.cloudflarestorage.com/${key}`,
         thumbnails: {
           small: `https://${this.bucket}.r2.cloudflarestorage.com/${thumbnailInfo.urls.small}`,
-          large: `https://${this.bucket}.r2.cloudflarestorage.com/${thumbnailInfo.urls.large}`,
         },
       };
     } catch (error) {
@@ -267,25 +269,38 @@ class PhotoStorage {
   }
 
   /**
-   * Get a photo with thumbnails
+   * Get a photo by ID
    */
   async getPhoto(id: string): Promise<PhotoRecord> {
     try {
-      const { metadata, url } = await this.getPhoto(id);
-      const thumbnailInfo = await this.findExistingThumbnails(metadata.thumbnailHash);
+      // List all folders to find the photo
+      const folders = await this.listFolders();
 
-      if (!thumbnailInfo) {
-        throw new Error('Thumbnail information not found');
+      for (const folder of folders.folders) {
+        try {
+          const metadataResponse = await this.client.send(
+            new GetObjectCommand({
+              Bucket: this.bucket,
+              Key: `${PhotoStorage.METADATA_PREFIX}${folder}/${id}.json`,
+            })
+          );
+
+          const metadata = JSON.parse(await metadataResponse.Body!.transformToString()) as PhotoMetadata;
+
+          return {
+            metadata,
+            url: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.CONTENT_PREFIX}${folder}/${id}`,
+            thumbnails: {
+              small: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.THUMBNAIL_PREFIX}/${id}`,
+            },
+          };
+        } catch (error) {
+          // Continue searching in other folders
+          continue;
+        }
       }
 
-      return {
-        metadata,
-        url,
-        thumbnails: {
-          small: `https://${this.bucket}.r2.cloudflarestorage.com/${thumbnailInfo.urls.small}`,
-          large: `https://${this.bucket}.r2.cloudflarestorage.com/${thumbnailInfo.urls.large}`,
-        },
-      };
+      throw new Error(`Photo with ID ${id} not found in any folder`);
     } catch (error) {
       console.error('Error getting photo:', error);
       throw new Error(`Failed to get photo: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -298,7 +313,7 @@ class PhotoStorage {
   async deletePhoto(id: string): Promise<void> {
     try {
       const photo = await this.getPhoto(id);
-      const { thumbnailHash } = photo.metadata;
+      const { hash } = photo.metadata;
 
       // Check if other photos use the same thumbnails
       const otherPhotosUsingThumbnails = await this.listPhotos({
@@ -306,7 +321,7 @@ class PhotoStorage {
       });
 
       const hasOtherReferences = otherPhotosUsingThumbnails.photos.some(
-        p => p.metadata.id !== id && p.metadata.thumbnailHash === thumbnailHash
+        p => p.metadata.id !== id && p.metadata.hash === hash
       );
 
       // Delete the photo content and metadata
@@ -314,12 +329,7 @@ class PhotoStorage {
 
       // If no other photos use these thumbnails, delete them
       if (!hasOtherReferences) {
-        const thumbnailKeys = [
-          `${PhotoStorage.THUMBNAIL_PREFIX}${thumbnailHash}/small.jpg`,
-          `${PhotoStorage.THUMBNAIL_PREFIX}${thumbnailHash}/medium.jpg`,
-          `${PhotoStorage.THUMBNAIL_PREFIX}${thumbnailHash}/large.jpg`,
-          `${PhotoStorage.THUMBNAIL_PREFIX}${thumbnailHash}/info.json`,
-        ];
+        const thumbnailKeys = [`${PhotoStorage.THUMBNAIL_PREFIX}${hash}/small.jpg`];
 
         await Promise.all(
           thumbnailKeys.map(key =>
@@ -339,15 +349,33 @@ class PhotoStorage {
   }
 
   /**
+   * Create a new folder
+   */
+  async createFolder(folder: string): Promise<void> {
+    try {
+      await this.client.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: `${PhotoStorage.FOLDER_INDEX_PREFIX}${this.sanitizeFolderName(folder)}`,
+        })
+      );
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      throw new Error(`Failed to create folder: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * List all folders
    */
-  async listFolders(): Promise<ListFoldersResponse> {
+  async listFolders(nextCursor?: string): Promise<ListFoldersResponse> {
     try {
       const response = await this.client.send(
         new ListObjectsV2Command({
           Bucket: this.bucket,
           Prefix: PhotoStorage.FOLDER_INDEX_PREFIX,
           Delimiter: '/',
+          ContinuationToken: nextCursor,
         })
       );
 
@@ -407,8 +435,7 @@ class PhotoStorage {
             metadata,
             url: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.CONTENT_PREFIX}${metadata.folder}/${metadata.id}`,
             thumbnails: {
-              small: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.THUMBNAIL_PREFIX}${metadata.thumbnailHash}/small.jpg`,
-              large: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.THUMBNAIL_PREFIX}${metadata.thumbnailHash}/large.jpg`,
+              small: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.THUMBNAIL_PREFIX}${metadata.hash}/small.jpg`,
             },
           });
         }
@@ -490,38 +517,14 @@ class PhotoStorage {
   /**
    * Generate thumbnails for an image
    */
-  private async generateThumbnails(imageBuffer: Buffer): Promise<{
-    thumbnails: Record<keyof ThumbnailSizes, Buffer>;
-    hash: string;
-  }> {
-    const image = sharp(imageBuffer);
-    const metadata = await image.metadata();
-    const hash = await this.calculateHash(imageBuffer);
+  private async generateThumbnails(imageBuffer: Buffer): Promise<Record<keyof ThumbnailSizes, Buffer>> {
+    const buffer = await ImageManipulation.downScale(imageBuffer);
 
     const thumbnails: Record<keyof ThumbnailSizes, Buffer> = {
-      small: await this.generateThumbnail(image, 'small'),
-      large: await this.generateThumbnail(image, 'large'),
+      small: buffer,
     };
 
-    return { thumbnails, hash };
-  }
-
-  /**
-   * Generate a single thumbnail
-   */
-  private async generateThumbnail(image: sharp.Sharp, size: keyof ThumbnailSizes): Promise<Buffer> {
-    const { width, height } = PhotoStorage.THUMBNAIL_SIZES[size];
-    return image
-      .clone()
-      .resize(width, height, {
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
-      .jpeg({
-        quality: 80,
-        progressive: true,
-      })
-      .toBuffer();
+    return thumbnails;
   }
 
   /**
@@ -540,8 +543,7 @@ class PhotoStorage {
         return {
           hash: hash,
           urls: {
-            small: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/small.jpg`,
-            large: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/large.jpg`,
+            small: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/small.webp`,
           },
         };
       }
@@ -564,24 +566,23 @@ class PhotoStorage {
       return existingThumbnails;
     }
 
-    const thumbnailPromises = Object.entries(thumbnails).map(([size, buffer]) =>
-      this.client.send(
+    const thumbnailPromises = Object.entries(thumbnails).map(([size, buffer]) => {
+      return this.client.send(
         new PutObjectCommand({
           Bucket: this.bucket,
-          Key: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/${size}.jpg`,
+          Key: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/${size}.webp`,
           Body: buffer,
-          ContentType: 'image/jpeg',
+          ContentType: 'image/webp',
         })
-      )
-    );
+      );
+    });
 
     await Promise.all(thumbnailPromises);
 
     const thumbnailInfo: ThumbnailInfo = {
       hash,
       urls: {
-        small: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/small.jpg`,
-        large: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/large.jpg`,
+        small: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/small.webp`,
       },
     };
 
