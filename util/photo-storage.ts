@@ -238,9 +238,9 @@ class PhotoStorage {
 
           return {
             metadata,
-            url: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.CONTENT_PREFIX}${folderPath}${id}`,
+            url: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.CONTENT_PREFIX}${folderPath}${id}`,
             thumbnails: {
-              small: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.THUMBNAIL_PREFIX}/${id}`,
+              small: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.THUMBNAIL_PREFIX}/${id}`,
             },
           };
         } catch {}
@@ -423,7 +423,7 @@ class PhotoStorage {
           new CopyObjectCommand({
             Bucket: this.bucket,
             Key: `${PhotoStorage.CONTENT_PREFIX}${sanitizedNewFolder}/${id}`,
-            CopySource: `${this.bucket}/${PhotoStorage.CONTENT_PREFIX}${oldFolder}/${id}`,
+            CopySource: `${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.CONTENT_PREFIX}${oldFolder}/${id}`,
           })
         ),
         // Create new metadata file
