@@ -40,7 +40,7 @@ interface Props {
   selectedImagesId: string[];
   selectAllImages: () => void;
   isAllSelected: boolean;
-  images: Image[];
+  images: PhotoRecord[];
   folders: string[];
   isStarredOnly: boolean;
   pathname: string;
@@ -334,7 +334,7 @@ function Header(props: Props) {
 interface SelectElProps {
   isSelecting: boolean;
   isAllSelected: boolean;
-  images: Image[];
+  images: PhotoRecord[];
 }
 function SelectEl(props: SelectElProps) {
   const { isSelecting, isAllSelected, images } = props;
@@ -350,14 +350,14 @@ function SelectEl(props: SelectElProps) {
         <XMarkIcon className="ml-1 w-3.5" />
       </>
     );
-  } else {
-    return (
-      <>
-        <span>Select</span>
-        <CursorArrowRaysIcon className="ml-1 w-3.5" />
-      </>
-    );
   }
+
+  return (
+    <>
+      <span>Select</span>
+      <CursorArrowRaysIcon className="ml-1 w-3.5" />
+    </>
+  );
 }
 
 export default memo(Header);

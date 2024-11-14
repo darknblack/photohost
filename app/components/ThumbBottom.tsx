@@ -7,7 +7,7 @@ function ThumbBottom({
   isActive,
   onClick,
 }: {
-  item: Image;
+  item: PhotoRecord;
   isActive: boolean;
   onClick: (path: string) => () => void;
 }) {
@@ -20,11 +20,11 @@ function ThumbBottom({
       className={cx('h-full relative cursor-pointer button-w-action aspect-video', {
         'bg-opacity-5': !isActive,
       })}
-      onClick={onClick(item.path)}
+      onClick={onClick(item.url)}
     >
       {isVisible && (
         <>
-          <img src={item.thumb} className={cx('h-full object-cover w-full')} />
+          <img src={item.thumbnails.small} className={cx('h-full object-cover w-full')} />
           <div
             className={cx('absolute left-0 top-0 right-0 bottom-0', {
               hidden: isActive,

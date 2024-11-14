@@ -237,8 +237,6 @@ export async function uploadImageOnServer(folder: string, formData: FormData) {
 
 export async function addFolderToServer(folder: string) {
   await photoStorage.createFolder(folder);
-  fs.mkdirSync(path.join(ALBUM_ROOT_PATH, folder), { recursive: true });
-  fs.mkdirSync(path.join(THUMBS_ROOT_PATH), { recursive: true });
 }
 
 // arrOfFilenamesWithoutParam = [folder, filename][]

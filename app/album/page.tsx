@@ -9,24 +9,18 @@ type searchParams = {
 export const dynamic = 'force-dynamic';
 
 export default async function Home({ searchParams }: { searchParams?: searchParams }) {
-  const activeFolder = (((searchParams && searchParams['folder']) ?? '') as string) || '';
-  let activePage: string | number = ((searchParams && searchParams['page']) ?? '') as string;
-  const isStarredOnly: boolean = !!(((searchParams && searchParams['starred']) ?? '') as string);
+  const activeFolder = (searchParams?.folder ?? '') as string;
+  let activePage: string | number = (searchParams?.page ?? '') as string;
+  const isStarredOnly: boolean = !!((searchParams?.starred ?? false) as string);
 
   activePage = !activePage ? 1 : activePage;
 
-  // const images = await photoStorage.listPhotos({
-  //   folder: activeFolder,
-  //   limit: 50,
-  // });
-
-  // console.log('images', JSON.stringify(images.photos));
-
-  const images = await getImages({
-    page: Number(activePage),
-    folder: activeFolder,
-    isGallery: true,
-  });
+  const images = (
+    await photoStorage.listPhotos({
+      folder: activeFolder,
+      limit: 50,
+    })
+  ).photos;
 
   if (images === undefined) {
     return <div>Something went wrong</div>;
@@ -35,6 +29,9 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
   const folders = await getAllFolders();
   const _isMobileDevice = await isMobileDevice();
   const isSidebarOpen = await getServerSidebarState();
+
+  // console.log('images', images);
+  console.log('activeFolder', activeFolder);
 
   return (
     <>

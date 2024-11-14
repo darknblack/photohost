@@ -7,81 +7,21 @@ import {
   ListObjectsV2Command,
   CopyObjectCommand,
 } from '@aws-sdk/client-s3';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { blake3 } from 'hash-wasm';
 import sharp from 'sharp';
 import ImageManipulation from './image-manipulation';
-import path from 'path';
-
-interface ThumbnailSizes {
-  small: { width: number; height: number };
-}
-
-interface ThumbnailInfo {
-  hash: string;
-  urls: {
-    small: string;
-  };
-}
-
-interface PhotoMetadata {
-  id: string;
-  originalName: string;
-  contentType: string;
-  size: number;
-  hash: string;
-  uploadedAt: string;
-  folder: string;
-  tags?: string[];
-  dimensions?: {
-    width: number;
-    height: number;
-  };
-}
-
-interface PhotoRecord {
-  metadata: PhotoMetadata;
-  url: string;
-  thumbnails: {
-    small: string;
-  };
-}
-
-interface PhotoMetadata {
-  id: string;
-  originalName: string;
-  contentType: string;
-  size: number;
-  hash: string;
-  uploadedAt: string;
-  folder: string;
-  tags?: string[];
-}
-
-interface PhotoRecord {
-  metadata: PhotoMetadata;
-  url: string;
-}
-
-interface ListPhotosOptions {
-  folder?: string;
-  limit?: number;
-  cursor?: string;
-  tags?: string[];
-}
-
-interface ListFoldersResponse {
-  folders: string[];
-  nextCursor?: string;
-}
+import path from 'node:path';
 
 function getContentType(filename: string) {
   const ext = path.extname(filename).toLowerCase();
   if (ext === '.jpg' || ext === '.jpeg') {
     return 'image/jpeg';
-  } else if (ext === '.png') {
+  }
+  if (ext === '.png') {
     return 'image/png';
-  } else if (ext === '.gif') {
+  }
+  if (ext === '.gif') {
     return 'image/gif';
   }
 }
@@ -92,6 +32,7 @@ class PhotoStorage {
   private static readonly CONTENT_PREFIX = 'content/';
   private static readonly FOLDER_INDEX_PREFIX = 'folders/';
   private static readonly THUMBNAIL_PREFIX = 'thumbnails/';
+  private static readonly DOMAIN_PREFIX = 'heroinspire.com';
 
   constructor(accountId: string, accessKeyId: string, secretAccessKey: string, bucket: string) {
     this.bucket = bucket;
@@ -145,6 +86,7 @@ class PhotoStorage {
             })
           );
 
+          // biome-ignore lint/style/noNonNullAssertion: <explanation>
           const metadata = JSON.parse(await response.Body!.transformToString()) as PhotoMetadata;
           if (metadata.hash === hash) {
             return metadata.id;
@@ -162,11 +104,13 @@ class PhotoStorage {
    * Store photo metadata
    */
   private async storeMetadata(metadata: PhotoMetadata): Promise<void> {
-    const folderPath = this.sanitizeFolderName(metadata.folder);
+    const sanitizedFolder = this.sanitizeFolderName(metadata.folder);
+    const folderPath = sanitizedFolder ? `${sanitizedFolder}/` : '';
+
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
-        Key: `${PhotoStorage.METADATA_PREFIX}${folderPath}/${metadata.hash}.json`,
+        Key: `${PhotoStorage.METADATA_PREFIX}${folderPath}${metadata.hash}.json`,
         Body: JSON.stringify(metadata),
         ContentType: 'application/json',
       })
@@ -180,7 +124,8 @@ class PhotoStorage {
    * Update folder index
    */
   private async updateFolderIndex(folder: string): Promise<void> {
-    const folderPath = this.sanitizeFolderName(folder);
+    const sanitizedFolder = this.sanitizeFolderName(folder);
+    const folderPath = sanitizedFolder ? `${sanitizedFolder}/` : '';
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
@@ -204,6 +149,7 @@ class PhotoStorage {
   ): Promise<PhotoRecord> {
     try {
       const sanitizedFolder = this.sanitizeFolderName(folder);
+      const folderPath = sanitizedFolder ? `${sanitizedFolder}/` : '';
       const hash = await this.calculateHash(file);
 
       // Check for duplicates in the same folder
@@ -221,7 +167,7 @@ class PhotoStorage {
       const thumbnailInfo = await this.storeThumbnails(hash, thumbnails);
 
       const id = randomUUID();
-      const key = `${PhotoStorage.CONTENT_PREFIX}${sanitizedFolder}/${hash}`;
+      const key = `${PhotoStorage.CONTENT_PREFIX}${folderPath}${hash}`;
 
       // Get image dimensions
       const dimensions = await sharp(file).metadata();
@@ -257,9 +203,9 @@ class PhotoStorage {
 
       return {
         metadata,
-        url: `https://${this.bucket}.r2.cloudflarestorage.com/${key}`,
+        url: `https://${PhotoStorage.DOMAIN_PREFIX}/content/${sanitizedFolder}${key}`,
         thumbnails: {
-          small: `https://${this.bucket}.r2.cloudflarestorage.com/${thumbnailInfo.urls.small}`,
+          small: `https://${PhotoStorage.DOMAIN_PREFIX}/${thumbnailInfo.urls.small}`,
         },
       };
     } catch (error) {
@@ -285,19 +231,19 @@ class PhotoStorage {
             })
           );
 
+          // biome-ignore lint/style/noNonNullAssertion: <explanation>
           const metadata = JSON.parse(await metadataResponse.Body!.transformToString()) as PhotoMetadata;
+
+          const folderPath = folder ? `${folder}/` : '';
 
           return {
             metadata,
-            url: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.CONTENT_PREFIX}${folder}/${id}`,
+            url: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.CONTENT_PREFIX}${folderPath}${id}`,
             thumbnails: {
               small: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.THUMBNAIL_PREFIX}/${id}`,
             },
           };
-        } catch (error) {
-          // Continue searching in other folders
-          continue;
-        }
+        } catch {}
       }
 
       throw new Error(`Photo with ID ${id} not found in any folder`);
@@ -329,7 +275,7 @@ class PhotoStorage {
 
       // If no other photos use these thumbnails, delete them
       if (!hasOtherReferences) {
-        const thumbnailKeys = [`${PhotoStorage.THUMBNAIL_PREFIX}${hash}/small.jpg`];
+        const thumbnailKeys = [`${PhotoStorage.THUMBNAIL_PREFIX}${hash}/small.webp`];
 
         await Promise.all(
           thumbnailKeys.map(key =>
@@ -408,6 +354,7 @@ class PhotoStorage {
           Prefix: prefix,
           MaxKeys: options.limit || 100,
           ContinuationToken: options.cursor,
+          Delimiter: '/',
         })
       );
 
@@ -422,6 +369,7 @@ class PhotoStorage {
             })
           );
 
+          // biome-ignore lint/style/noNonNullAssertion: <explanation>
           const metadata = JSON.parse(await metadataResponse.Body!.transformToString()) as PhotoMetadata;
 
           // Filter by tags if specified
@@ -431,15 +379,19 @@ class PhotoStorage {
             }
           }
 
+          const folderPath = options.folder ? `${options.folder}/` : '';
+
           photos.push({
             metadata,
-            url: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.CONTENT_PREFIX}${metadata.folder}/${metadata.id}`,
+            url: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.CONTENT_PREFIX}${folderPath}${metadata.hash}`,
             thumbnails: {
-              small: `https://${this.bucket}.r2.cloudflarestorage.com/${PhotoStorage.THUMBNAIL_PREFIX}${metadata.hash}/small.jpg`,
+              small: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.THUMBNAIL_PREFIX}${metadata.hash}/small.webp`,
             },
           });
         }
       }
+
+      console.log('photos', photos);
 
       return {
         photos,

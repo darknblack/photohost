@@ -1,0 +1,12 @@
+{
+  "linter": {
+    "rules": {
+      "style": {
+        "useSelfClosingElements": "off"
+      },
+      "a11y": {
+        "useButtonType": "off"
+      }
+    }
+  }
+}

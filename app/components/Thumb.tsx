@@ -12,7 +12,7 @@ import useEvent from '../hooks/useEvent';
 import download from '../server/ClientDownloader';
 import useTaps from '../hooks/useTaps';
 interface Props {
-  image: Image;
+  image: PhotoRecord;
   state: {
     isListView: boolean;
   };
@@ -35,7 +35,7 @@ function Thumb(props: Props) {
   });
 
   const onClickDownload = useEvent(() => {
-    download(image.path);
+    download(image.url);
   });
 
   const taps = useTaps({
@@ -59,7 +59,7 @@ function Thumb(props: Props) {
     >
       <div className={cx({ 'flex gap-2 items-center': state.isListView })}>
         <img
-          src={image.thumb}
+          src={image.thumbnails.small}
           alt="Image"
           className={cx('rounded object-cover', {
             'h-40': !state.isListView,

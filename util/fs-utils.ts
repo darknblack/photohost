@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { blake3 } from 'hash-wasm';
 
 const BASE_STORED_PATH = path.join('storage');

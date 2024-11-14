@@ -17,10 +17,7 @@ import { usePathname } from 'next/navigation';
 import clientCookies from 'js-cookie';
 
 interface Props {
-  images: {
-    images: Image[];
-    total: number;
-  };
+  images: PhotoRecord[];
   folders: string[];
   activeFolder: string;
   isStarredOnly: boolean;
@@ -44,8 +41,8 @@ const GalleryPage = (props: Props) => {
     folderName: '',
     activeImageUrl: '',
     cPage: cPage,
-    images: props.images.images,
-    total: props.images.total,
+    images: props.images,
+    total: props.images.length,
     isSidebarOpen: isSidebarOpen,
   });
 
@@ -94,7 +91,7 @@ const GalleryPage = (props: Props) => {
     if (selectedImagesId.length === state.images.length) {
       setSelectedImagesId([]);
     } else {
-      setSelectedImagesId(state.images.map(image => image.path));
+      setSelectedImagesId(state.images.map(image => image.metadata.id));
     }
   });
 
@@ -114,32 +111,33 @@ const GalleryPage = (props: Props) => {
   });
 
   const onInfiniteScrollTriggerPoint = useEvent(async () => {
+    return;
     if (isPendingNewImages) return;
 
-    if (state.total > state.images.length) {
-      startFetchingNewImages(async () => {
-        const newPage = state.cPage + 1;
+    // if (state.total > state.images.length) {
+    //   startFetchingNewImages(async () => {
+    //     const newPage = state.cPage + 1;
 
-        const res = isStarredOnly
-          ? await getStarredImages({ page: newPage })
-          : await getImages({
-              page: newPage,
-              folder: activeFolder,
-              isGallery: pathname === '/album',
-              isTrash: pathname === '/trash',
-            });
+    //     const res = isStarredOnly
+    //       ? await getStarredImages({ page: newPage })
+    //       : await getImages({
+    //           page: newPage,
+    //           folder: activeFolder,
+    //           isGallery: pathname === '/album',
+    //           isTrash: pathname === '/trash',
+    //         });
 
-        if (res) {
-          const newImages = [...state.images, ...res.images];
-          setState(prev => ({
-            ...prev,
-            images: newImages,
-            total: res.total,
-            cPage: newPage,
-          }));
-        }
-      });
-    }
+    //     if (res) {
+    //       const newImages = [...state.images, ...res.images];
+    //       setState(prev => ({
+    //         ...prev,
+    //         images: newImages,
+    //         total: res.total,
+    //         cPage: newPage,
+    //       }));
+    //     }
+    //   });
+    // }
   });
 
   const toggleSidebar = useEvent(async () => {
@@ -209,13 +207,13 @@ const GalleryPage = (props: Props) => {
               {state.images.map(image => {
                 return (
                   <Thumb
-                    key={image.path}
+                    key={image.metadata.id}
                     image={image}
                     isSelecting={isSelecting}
                     state={state}
-                    selectImage={() => selectImage(image.path)}
-                    isSelected={selectedImagesId.includes(image.path)}
-                    onParentclick={onThumbParentClick(image.path)}
+                    selectImage={() => selectImage(image.url)}
+                    isSelected={selectedImagesId.includes(image.url)}
+                    onParentclick={onThumbParentClick(image.url)}
                     pathname={pathname}
                     isMobileDevice={isMobileDevice}
                   />

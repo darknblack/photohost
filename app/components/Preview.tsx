@@ -11,7 +11,7 @@ import useWindowSize from '../hooks/useWindowSize';
 import InfiniteScrollTriggerPoint from './InfiniteScrollTriggerPoint';
 interface Props {
   activeImageUrl: string;
-  images: Image[];
+  images: PhotoRecord[];
   selectPreviewImageUrl: (url: string) => void;
   onInfiniteScrollTriggerPoint: () => void; // useEvent
   isPendingNewImages: boolean;
@@ -38,17 +38,17 @@ function Preview(props: Props) {
     onClose();
   });
 
-  const activeIndex = useMemo(() => images.findIndex(item => item.path === activeImageUrl), [activeImageUrl, images]);
+  const activeIndex = useMemo(() => images.findIndex(item => item.url === activeImageUrl), [activeImageUrl, images]);
 
   const goLeft = useEvent(() => {
     if (activeIndex > 0) {
-      selectPreviewImageUrl(images[activeIndex - 1].path);
+      selectPreviewImageUrl(images[activeIndex - 1].url);
     }
   });
 
   const goRight = useEvent(() => {
     if (activeIndex < images.length - 1) {
-      selectPreviewImageUrl(images[activeIndex + 1].path);
+      selectPreviewImageUrl(images[activeIndex + 1].url);
     }
   });
 
@@ -131,8 +131,8 @@ function Preview(props: Props) {
 
         <div ref={thumbsRootRef} className="h-[6%] flex gap-1 pb-2">
           {images.map(item => {
-            const isActive = activeImageUrl === item.path;
-            return <ThumbBottom key={item.path} item={item} isActive={isActive} onClick={onClickThumb} />;
+            const isActive = activeImageUrl === item.url;
+            return <ThumbBottom key={item.url} item={item} isActive={isActive} onClick={onClickThumb} />;
           })}
           {!isPendingNewImages && <InfiniteScrollTriggerPoint cb={onInfiniteScrollTriggerPoint} />}
         </div>

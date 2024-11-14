@@ -76,8 +76,6 @@ export default function Modals(props: Props) {
       return [folder, filename];
     });
 
-  const deleteFilesFromServerHandler = useEvent(async () => {});
-
   const rElDestinationFolder = useRef<any>();
 
   return (
