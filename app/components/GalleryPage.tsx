@@ -5,7 +5,7 @@ import { Button, Modal, TextInput } from 'flowbite-react';
 import { useState, useTransition } from 'react';
 import cx from 'clsx';
 import useEvent from '@/app/hooks/useEvent';
-import { addFolderToServer, getImages, getStarredImages, uploadImageOnServer } from '@/app/server/actions';
+import { addFolderToServer, uploadPhotoToServer } from '@/app/server/actions';
 import { useRouter } from 'next/navigation';
 import Thumb from './Thumb';
 import Sidebar from './Sidebar';
@@ -44,6 +44,11 @@ const GalleryPage = (props: Props) => {
     images: props.images,
     total: props.images.length,
     isSidebarOpen: isSidebarOpen,
+
+    // uploading state and progress
+    totalUploadCount: 0,
+    doneUploadingCount: 0,
+    isUploading: false,
   });
 
   const changeState = useEvent((newState: Partial<typeof state>) => {
@@ -54,18 +59,44 @@ const GalleryPage = (props: Props) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const formData = new FormData();
+    setState(prev => ({
+      ...prev,
+      totalUploadCount: files.length,
+      isUploading: true,
+    }));
+
     for (let i = 0; files.length > i; i++) {
       const file = files[i];
+      const formData = new FormData();
       formData.append('files', file);
+
+      try {
+        const r = await uploadPhotoToServer(activeFolder, formData);
+        if (r) {
+          setState(prev => ({
+            ...prev,
+            images: [r, ...prev.images],
+            doneUploadingCount: prev.doneUploadingCount + 1,
+          }));
+        } else {
+          setState(prev => ({
+            ...prev,
+            doneUploadingCount: prev.doneUploadingCount + 1,
+          }));
+        }
+      } catch (e) {}
     }
-    await uploadImageOnServer(activeFolder, formData);
+
+    // Wait for any remaining promises to resolve
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    setState(prev => ({ ...prev, isUploading: false, doneUploadingCount: 0, totalUploadCount: 0 }));
     router.refresh();
   });
 
   const createFolder = useEvent(async () => {
     try {
-      const res = await addFolderToServer(state.folderName);
+      await addFolderToServer(state.folderName);
       router.refresh();
     } catch (e) {
       console.error(e);
@@ -111,13 +142,10 @@ const GalleryPage = (props: Props) => {
   });
 
   const onInfiniteScrollTriggerPoint = useEvent(async () => {
-    return;
-    if (isPendingNewImages) return;
-
+    // if (isPendingNewImages) return;
     // if (state.total > state.images.length) {
     //   startFetchingNewImages(async () => {
     //     const newPage = state.cPage + 1;
-
     //     const res = isStarredOnly
     //       ? await getStarredImages({ page: newPage })
     //       : await getImages({
@@ -126,7 +154,6 @@ const GalleryPage = (props: Props) => {
     //           isGallery: pathname === '/album',
     //           isTrash: pathname === '/trash',
     //         });
-
     //     if (res) {
     //       const newImages = [...state.images, ...res.images];
     //       setState(prev => ({
@@ -207,13 +234,13 @@ const GalleryPage = (props: Props) => {
               {state.images.map(image => {
                 return (
                   <Thumb
-                    key={image.metadata.id}
+                    key={image.url}
                     image={image}
                     isSelecting={isSelecting}
                     state={state}
-                    selectImage={() => selectImage(image.url)}
-                    isSelected={selectedImagesId.includes(image.url)}
-                    onParentclick={onThumbParentClick(image.url)}
+                    selectImage={() => selectImage(image.thumbnails.large)}
+                    isSelected={selectedImagesId.includes(image.thumbnails.large)}
+                    onParentclick={onThumbParentClick(image.thumbnails.large)}
                     pathname={pathname}
                     isMobileDevice={isMobileDevice}
                   />
@@ -284,8 +311,35 @@ const GalleryPage = (props: Props) => {
           isPendingNewImages={isPendingNewImages}
         />
       )}
+
+      {state.isUploading && (
+        <div className="h-1.5 fixed top-0 left-0 right-0 z-20 bg-yellow-900">
+          <div
+            className="h-full w-full transition-all bg-yellow-300"
+            style={{
+              width:
+                state.totalUploadCount === 0 ? '0%' : `${(state.doneUploadingCount / state.totalUploadCount) * 100}%`,
+            }}
+          ></div>
+        </div>
+      )}
+      {/* <div id="toast-part" className="fixed bottom-0 right-0 py-2 px-2">
+        <ToastAdded />
+      </div> */}
     </>
   );
 };
 
 export default GalleryPage;
+
+// function ToastAdded() {
+//   return (
+//     <Toast>
+//       <div className="flex items-center gap-3">
+//         <PhotoIcon className="w-5 h-5" />
+//         <div className="text-sm">Upload successful!</div>
+//       </div>
+//       <Toast.Toggle></Toast.Toggle>
+//     </Toast>
+//   );
+// }

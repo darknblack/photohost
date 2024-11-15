@@ -1,5 +1,6 @@
 import GalleryPage from '@/app/components/GalleryPage';
-import { getAllFolders, getServerSidebarState, getStarredImages, isMobileDevice } from '@/app/server/actions';
+import { getAllFolders, getServerSidebarState, isMobileDevice } from '@/app/server/actions';
+import photoStorage from '@/util/photo-storage';
 
 type searchParams = {
   [key: string]: string | string[] | undefined;
@@ -8,9 +9,9 @@ type searchParams = {
 export const dynamic = 'force-dynamic';
 
 export default async function Trash({ searchParams }: { searchParams?: searchParams }) {
-  let activePage: string | number = ((searchParams && searchParams['page']) ?? '') as string;
+  let activePage: string | number = (searchParams?.page ?? '') as string;
   activePage = !activePage ? 1 : activePage;
-  const images = await getStarredImages({ page: Number(activePage) });
+  const images = (await photoStorage.listPhotos()).photos;
 
   if (images === undefined) {
     return <div>Something went wrong</div>;

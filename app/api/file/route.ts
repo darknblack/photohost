@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
 import { DELETED_IMAGES_PATH, ALBUM_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS } from '@/util/fs-utils';
 import FilenameHandler from '@/app/server/FilenameHandler';
 

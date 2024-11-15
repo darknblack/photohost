@@ -12,6 +12,7 @@ import { blake3 } from 'hash-wasm';
 import sharp from 'sharp';
 import ImageManipulation from './image-manipulation';
 import path from 'node:path';
+import fs from 'node:fs';
 
 function getContentType(filename: string) {
   const ext = path.extname(filename).toLowerCase();
@@ -25,6 +26,11 @@ function getContentType(filename: string) {
     return 'image/gif';
   }
 }
+
+const generateKeyId = (hash: string, width: number, height: number) => {
+  return `${new Date().getTime()}-${width}-${height}-${hash}`;
+};
+
 class PhotoStorage {
   private client: S3Client;
   private bucket: string;
@@ -62,7 +68,7 @@ class PhotoStorage {
    * Calculate SHA-256 hash of file
    */
   private async calculateHash(file: Buffer): Promise<string> {
-    return blake3(file);
+    return blake3(file, 64);
   }
 
   /**
@@ -86,7 +92,6 @@ class PhotoStorage {
             })
           );
 
-          // biome-ignore lint/style/noNonNullAssertion: <explanation>
           const metadata = JSON.parse(await response.Body!.transformToString()) as PhotoMetadata;
           if (metadata.hash === hash) {
             return metadata.id;
@@ -146,7 +151,7 @@ class PhotoStorage {
     options: {
       tags?: string[];
     } = {}
-  ): Promise<PhotoRecord> {
+  ): Promise<Omit<PhotoMetadata, 'metadata'>> {
     try {
       const sanitizedFolder = this.sanitizeFolderName(folder);
       const folderPath = sanitizedFolder ? `${sanitizedFolder}/` : '';
@@ -160,17 +165,14 @@ class PhotoStorage {
         return existing;
       }
 
-      // Generate thumbnails
-      const thumbnails = await this.generateThumbnails(file);
-
-      // Store thumbnails (this will reuse existing ones if available)
-      const thumbnailInfo = await this.storeThumbnails(hash, thumbnails);
-
       const id = randomUUID();
-      const key = `${PhotoStorage.CONTENT_PREFIX}${folderPath}${hash}`;
 
       // Get image dimensions
       const dimensions = await sharp(file).metadata();
+
+      const filename = generateKeyId(hash, dimensions.width as number, dimensions.height as number);
+      const key = `${PhotoStorage.CONTENT_PREFIX}${folderPath}${filename}`;
+
       const contentType = getContentType(fileName) || 'image/jpeg';
 
       // Upload the actual file
@@ -184,7 +186,7 @@ class PhotoStorage {
       );
 
       // Create and store metadata
-      const metadata: PhotoMetadata = {
+      const metadata: Omit<PhotoMetadata, 'metadata'> = {
         id,
         originalName: fileName,
         contentType: contentType,
@@ -201,11 +203,17 @@ class PhotoStorage {
 
       await this.storeMetadata(metadata);
 
+      // Generate thumbnails
+      const thumbnails = await this.generateThumbnails(file);
+
+      // Store thumbnails (this will reuse existing ones if available)
+      const thumbnailInfo = await this.storeThumbnails(hash, thumbnails);
+
       return {
-        metadata,
-        url: `https://${PhotoStorage.DOMAIN_PREFIX}/content/${sanitizedFolder}${key}`,
+        url: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.CONTENT_PREFIX}${folderPath}${key}`,
         thumbnails: {
           small: `https://${PhotoStorage.DOMAIN_PREFIX}/${thumbnailInfo.urls.small}`,
+          large: `https://${PhotoStorage.DOMAIN_PREFIX}/${thumbnailInfo.urls.large}`,
         },
       };
     } catch (error) {
@@ -231,7 +239,6 @@ class PhotoStorage {
             })
           );
 
-          // biome-ignore lint/style/noNonNullAssertion: <explanation>
           const metadata = JSON.parse(await metadataResponse.Body!.transformToString()) as PhotoMetadata;
 
           const folderPath = folder ? `${folder}/` : '';
@@ -240,7 +247,8 @@ class PhotoStorage {
             metadata,
             url: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.CONTENT_PREFIX}${folderPath}${id}`,
             thumbnails: {
-              small: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.THUMBNAIL_PREFIX}/${id}`,
+              small: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.THUMBNAIL_PREFIX}/${id}/small.webp`,
+              large: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.THUMBNAIL_PREFIX}/${id}/large.webp`,
             },
           };
         } catch {}
@@ -345,8 +353,8 @@ class PhotoStorage {
   async listPhotos(options: ListPhotosOptions = {}): Promise<{ photos: PhotoRecord[]; nextCursor?: string }> {
     try {
       const prefix = options.folder
-        ? `${PhotoStorage.METADATA_PREFIX}${this.sanitizeFolderName(options.folder)}/`
-        : PhotoStorage.METADATA_PREFIX;
+        ? `${PhotoStorage.CONTENT_PREFIX}${this.sanitizeFolderName(options.folder)}/`
+        : PhotoStorage.CONTENT_PREFIX;
 
       const response = await this.client.send(
         new ListObjectsV2Command({
@@ -362,36 +370,33 @@ class PhotoStorage {
 
       for (const object of response.Contents || []) {
         if (object.Key) {
-          const metadataResponse = await this.client.send(
-            new GetObjectCommand({
-              Bucket: this.bucket,
-              Key: object.Key,
-            })
-          );
+          // const metadataResponse = await this.client.send(
+          //   new GetObjectCommand({
+          //     Bucket: this.bucket,
+          //     Key: object.Key,
+          //   })
+          // );
 
-          // biome-ignore lint/style/noNonNullAssertion: <explanation>
-          const metadata = JSON.parse(await metadataResponse.Body!.transformToString()) as PhotoMetadata;
+          // const metadata = JSON.parse(await metadataResponse.Body!.transformToString()) as PhotoMetadata;
 
-          // Filter by tags if specified
-          if (options.tags && options.tags.length > 0) {
-            if (!metadata.tags || !options.tags.every(tag => metadata?.tags?.includes(tag))) {
-              continue;
-            }
-          }
+          // // Filter by tags if specified
+          // if (options.tags && options.tags.length > 0) {
+          //   if (!metadata.tags || !options.tags.every(tag => metadata?.tags?.includes(tag))) {
+          //     continue;
+          //   }
+          // }
 
-          const folderPath = options.folder ? `${options.folder}/` : '';
+          const hash = object.Key?.split('-').pop() || '';
 
           photos.push({
-            metadata,
-            url: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.CONTENT_PREFIX}${folderPath}${metadata.hash}`,
+            url: `https://${PhotoStorage.DOMAIN_PREFIX}/${object.Key}`,
             thumbnails: {
-              small: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.THUMBNAIL_PREFIX}${metadata.hash}/small.webp`,
+              small: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.THUMBNAIL_PREFIX}${hash}/small.webp`,
+              large: `https://${PhotoStorage.DOMAIN_PREFIX}/${PhotoStorage.THUMBNAIL_PREFIX}${hash}/large.webp`,
             },
           });
         }
       }
-
-      console.log('photos', photos);
 
       return {
         photos,
@@ -470,11 +475,15 @@ class PhotoStorage {
    * Generate thumbnails for an image
    */
   private async generateThumbnails(imageBuffer: Buffer): Promise<Record<keyof ThumbnailSizes, Buffer>> {
-    const buffer = await ImageManipulation.downScale(imageBuffer);
-
+    const large = await ImageManipulation.downScale(imageBuffer, false);
+    const small = await ImageManipulation.downScale(large, true);
     const thumbnails: Record<keyof ThumbnailSizes, Buffer> = {
-      small: buffer,
+      small: small,
+      large: large,
     };
+
+    fs.writeFileSync(`./${new Date().getTime()}_large.webp`, large);
+    fs.writeFileSync(`./${new Date().getTime()}_small.webp`, small);
 
     return thumbnails;
   }
@@ -496,6 +505,7 @@ class PhotoStorage {
           hash: hash,
           urls: {
             small: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/small.webp`,
+            large: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/large.webp`,
           },
         };
       }
@@ -535,6 +545,7 @@ class PhotoStorage {
       hash,
       urls: {
         small: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/small.webp`,
+        large: `${PhotoStorage.THUMBNAIL_PREFIX}${hash}/large.webp`,
       },
     };
 

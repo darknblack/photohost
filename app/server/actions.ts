@@ -1,9 +1,9 @@
 'use server';
 
-import { DELETED_IMAGES_PATH, ALBUM_ROOT_PATH, THUMBS_ROOT_PATH, VALID_EXTENSIONS, ZIP_PATH } from '@/util/fs-utils';
-import fs from 'fs';
+import { DELETED_IMAGES_PATH, ALBUM_ROOT_PATH, VALID_EXTENSIONS, ZIP_PATH } from '@/util/fs-utils';
+import fs from 'node:fs';
 import { revalidatePath } from 'next/cache';
-import path, { basename } from 'path';
+import path, { basename } from 'node:path';
 import FilenameHandler from '@/app/server/FilenameHandler';
 import archiver from 'archiver';
 import checkDiskSpace from 'check-disk-space';
@@ -12,161 +12,8 @@ import { UAParser } from 'ua-parser-js';
 import { headers } from 'next/headers';
 import photoStorage from '@/util/photo-storage';
 
-interface GetImagesProps {
-  folder?: string;
-  page?: number;
-  pageSize?: number;
-  isGallery?: boolean;
-  isTrash?: boolean;
-}
-
-const DEFAULT_PAGE_SIZE = 40;
-
-export async function getStarredImages(
-  props: GetImagesProps
-): Promise<undefined | { images: ExtendedImage[]; total: number }> {
-  const { page = 1, pageSize = DEFAULT_PAGE_SIZE } = props;
-  const allFolders = await getAllFolders();
-
-  const images: ExtendedImage[] = [];
-
-  const imagesInFolder = fs
-    .readdirSync(ALBUM_ROOT_PATH)
-    .filter(fileName => {
-      const isStarred = FilenameHandler.paramCheck(fileName, 's');
-      return fileName.match(/\.(jpe?g|png|gif)$/i) && isStarred;
-    })
-    .sort((a, b) => {
-      const [aMs] = a.split('-');
-      const [bMs] = b.split('-');
-      return Number(bMs) - Number(aMs);
-    });
-
-  loopImages(ALBUM_ROOT_PATH, imagesInFolder, '', images);
-
-  for (let i = 0; i < allFolders.length; i++) {
-    const folder = allFolders[i];
-    const pathFolder = path.join(ALBUM_ROOT_PATH, folder);
-
-    const imagesInFolder = fs
-      .readdirSync(pathFolder)
-      .filter(fileName => {
-        const isStarred = FilenameHandler.paramCheck(fileName, 's');
-        return fileName.match(/\.(jpe?g|png|gif)$/i) && isStarred;
-      })
-      .sort((a, b) => {
-        const [aMs] = a.split('-');
-        const [bMs] = b.split('-');
-        return Number(bMs) - Number(aMs);
-      });
-
-    loopImages(pathFolder, imagesInFolder, folder, images);
-  }
-
-  return {
-    images: images.slice((page - 1) * pageSize, page * pageSize),
-    total: images.length,
-  };
-}
-
-export async function getImages(props: GetImagesProps): Promise<
-  | undefined
-  | {
-      images: ExtendedImage[];
-      total: number;
-    }
-> {
-  const { folder = '', page = 1, pageSize = DEFAULT_PAGE_SIZE, isGallery = false, isTrash = false } = props;
-  // const pathFolder = folder ? folder : GALLERY_ROOT_PATH;
-
-  const pathFolder = (() => {
-    if (isGallery) {
-      if (folder) {
-        return path.join(ALBUM_ROOT_PATH, folder);
-      }
-      return ALBUM_ROOT_PATH;
-    }
-
-    if (isTrash) {
-      return DELETED_IMAGES_PATH;
-    }
-
-    return '';
-  })();
-
-  if (isTrash) {
-    fs.mkdirSync(DELETED_IMAGES_PATH, { recursive: true });
-  }
-
-  if (folder && !fs.existsSync(pathFolder)) return undefined;
-
-  fs.mkdirSync(pathFolder, { recursive: true });
-  const imagesInFolder = fs
-    .readdirSync(pathFolder)
-    .filter(file => file.match(/\.(jpe?g|png|gif)$/i))
-    .sort((a, b) => {
-      const [aMs] = a.split('-');
-      const [bMs] = b.split('-');
-      return Number(bMs) - Number(aMs);
-    });
-
-  const images: ExtendedImage[] = [];
-  loopImages(pathFolder, imagesInFolder, folder, images, isTrash);
-
-  return {
-    images: images.slice((page - 1) * pageSize, page * pageSize),
-    total: images.length,
-  };
-}
-
-function loopImages(
-  pathFolder: string,
-  imagesInFolder: string[],
-  folder: string,
-  images: any[],
-  isTrash: boolean = false
-) {
-  for (let i = 0; i < imagesInFolder.length; i++) {
-    const imagePath = path.join(pathFolder, imagesInFolder[i]);
-    const stat = fs.statSync(imagePath);
-    const filenameWithParam = path.basename(imagePath);
-    const isStar = FilenameHandler.paramCheck(filenameWithParam, 's');
-    const hashFilename = FilenameHandler.generateHashFilename(filenameWithParam);
-
-    const searchParamsObject: {
-      image: string;
-      folder?: string;
-      thumb?: string;
-    } = {
-      image: hashFilename,
-    };
-
-    if (folder && !isTrash) {
-      searchParamsObject.folder = folder;
-    }
-
-    const pathParams: any = { ...searchParamsObject };
-    const thumbParams: any = { ...searchParamsObject, thumb: '1' };
-    if (isTrash) {
-      pathParams.trash = '1';
-      thumbParams.trash = '1';
-    }
-
-    const image = {
-      path: `/api/file?${encodeObjectToQueryString(pathParams)}`,
-      thumb: `/api/file?${encodeObjectToQueryString(thumbParams)}`,
-      created: stat.birthtimeMs,
-      filename: hashFilename,
-      isStar: isStar,
-      folder: (!isTrash && folder) ?? '',
-    };
-
-    images.push(image);
-  }
-}
-
 export async function getAllFolders(): Promise<string[]> {
-  let folders: string[] = [];
+  const folders: string[] = [];
   let nextCursor: string | undefined = undefined;
 
   while (true) {
@@ -192,58 +39,74 @@ export async function toggleStar(folder: string, filenameWithoutParam: string, t
   }
 }
 
-export async function uploadImageOnServer(folder: string, formData: FormData) {
-  fs.mkdirSync(ALBUM_ROOT_PATH, { recursive: true });
-  fs.mkdirSync(THUMBS_ROOT_PATH, { recursive: true });
+// Function to process a single file
+export async function uploadPhotoToServer(folder: string, formData: FormData) {
+  try {
+    const files = formData.getAll('files');
+    if (files.length === 0) throw new Error('No files');
 
-  const files = formData.getAll('files');
+    const file = files[0] as File;
 
-  // Function to process a single file
-  const processFile = async (file: any) => {
-    try {
-      // Get the file extension
-      // @ts-ignore
-      const ext = path.extname(file.name).toLowerCase().replace('.', '');
-      // Check if extension is valid
-      if (!VALID_EXTENSIONS.includes(ext)) return 'incorrect file';
+    // Get the file extension
+    // @ts-ignore
+    const ext = path.extname(file.name).toLowerCase().replace('.', '');
+    // Check if extension is valid
+    if (!VALID_EXTENSIONS.includes(ext)) throw new Error('Incorrect file');
 
-      const buffer = Buffer.from(await file.arrayBuffer());
-      await photoStorage.uploadPhoto(buffer, file.name, folder);
-    } catch (e) {
-      // Handle error
-      console.error('Error processing file:', e);
-    }
-  };
-
-  // To always process 2 images at the same time
-  let promises: Promise<any>[] = [];
-  for (const file of files) {
-    const promise = processFile(file);
-    promises.push(promise);
-
-    // If there are at least 2 promises, wait for the first one to complete
-    if (promises.length >= 4) {
-      await Promise.race(promises);
-      // Remove resolved promises from the list
-      promises = promises.filter(p => p !== promise);
-    }
+    const buffer = Buffer.from(await file.arrayBuffer());
+    return await photoStorage.uploadPhoto(buffer, file.name, folder);
+  } catch (e) {
+    // Handle error
+    console.error('Error processing file:', e);
   }
-
-  // Wait for any remaining promises to resolve
-  await Promise.all(promises);
-
-  return 1;
 }
+
+// async function uploadImageOnServerLegacy(folder: string, formData: FormData) {
+//   const files = formData.getAll('files');
+
+//   // Function to process a single file
+//   async function uploadPhoto(folder: string, file: File) {
+//     try {
+//       // Get the file extension
+//       // @ts-ignore
+//       const ext = path.extname(file.name).toLowerCase().replace('.', '');
+//       // Check if extension is valid
+//       if (!VALID_EXTENSIONS.includes(ext)) throw new Error('Incorrect file');
+
+//       const buffer = Buffer.from(await file.arrayBuffer());
+//       return await photoStorage.uploadPhoto(buffer, file.name, folder);
+//     } catch (e) {
+//       // Handle error
+//       console.error('Error processing file:', e);
+//     }
+//   }
+
+//   // To always process 2 images at the same time
+//   let promises: Promise<any>[] = [];
+//   for (const file of files) {
+//     const promise = uploadPhoto(folder, file as File);
+//     promises.push(promise);
+
+//     // If there are at least 2 promises, wait for the first one to complete
+//     if (promises.length >= 4) {
+//       await Promise.race(promises);
+//       // Remove resolved promises from the list
+//       promises = promises.filter(p => p !== promise);
+//     }
+//   }
+
+//   // Wait for any remaining promises to resolve
+//   await Promise.all(promises);
+
+//   return 1;
+// }
 
 export async function addFolderToServer(folder: string) {
   await photoStorage.createFolder(folder);
 }
 
 // arrOfFilenamesWithoutParam = [folder, filename][]
-export async function deleteFilesFromServer(
-  arrOfFilenamesWithoutParam: [string, string][],
-  deleteFile: boolean = false
-) {
+export async function deleteFilesFromServer(arrOfFilenamesWithoutParam: [string, string][], deleteFile: boolean) {
   for (let i = 0; arrOfFilenamesWithoutParam.length > i; i++) {
     const [folder, filenameWithoutParam] = arrOfFilenamesWithoutParam[i];
 
@@ -344,10 +207,11 @@ export async function renameFolder(folder: string, newFolder: string) {
   return f1;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 function encodeObjectToQueryString(obj: any) {
   const parts = [];
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (key in obj) {
       parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`);
     }
   }
@@ -382,7 +246,7 @@ export async function zipFile(pathFiles: string[]) {
   }
 
   // good practice to catch this error explicitly
-  archive.on('error', function (err) {
+  archive.on('error', err => {
     throw err;
   });
 

@@ -1,5 +1,5 @@
 import GalleryPage from '@/app/components/GalleryPage';
-import { getAllFolders, getImages, getServerSidebarState, isMobileDevice } from '@/app/server/actions';
+import { getAllFolders, getServerSidebarState, isMobileDevice } from '@/app/server/actions';
 import photoStorage from '@/util/photo-storage';
 
 type searchParams = {
@@ -29,9 +29,6 @@ export default async function Home({ searchParams }: { searchParams?: searchPara
   const folders = await getAllFolders();
   const _isMobileDevice = await isMobileDevice();
   const isSidebarOpen = await getServerSidebarState();
-
-  // console.log('images', images);
-  console.log('activeFolder', activeFolder);
 
   return (
     <>

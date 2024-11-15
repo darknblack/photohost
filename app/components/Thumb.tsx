@@ -5,8 +5,7 @@ import { StarIcon } from '@heroicons/react/24/outline';
 import { StarIcon as StarredIcon } from '@heroicons/react/16/solid';
 import { ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 import { Checkbox } from 'flowbite-react';
-import { memo, useRef } from 'react';
-import { toggleStar } from '@/app/server/actions';
+import { memo } from 'react';
 import { useRouter } from 'next/navigation';
 import useEvent from '../hooks/useEvent';
 import download from '../server/ClientDownloader';
@@ -26,11 +25,11 @@ interface Props {
 
 function Thumb(props: Props) {
   const { image, state, selectImage, isSelected, onParentclick, isMobileDevice, isSelecting } = props;
-  const isStarred = image.isStar;
+  const isStarred = false; // TODO:
   const router = useRouter();
 
   const onClickStar = useEvent(() => {
-    toggleStar(image.folder, image.filename, !isStarred);
+    // toggleStar(image.folder, image.filename, !isStarred);
     router.refresh();
   });
 
@@ -50,17 +49,20 @@ function Thumb(props: Props) {
   });
 
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
     <div
       className={cx('relative select-none cursor-pointer', {
         'group/thumb': !isMobileDevice,
       })}
       onClick={taps}
       onContextMenu={longPress}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: <explanation>
+      tabIndex={0}
     >
       <div className={cx({ 'flex gap-2 items-center': state.isListView })}>
         <img
           src={image.thumbnails.small}
-          alt="Image"
+          alt="thumb"
           className={cx('rounded object-cover', {
             'h-40': !state.isListView,
             '!w-12 h-12': state.isListView,

@@ -20,11 +20,11 @@ function ThumbBottom({
       className={cx('h-full relative cursor-pointer button-w-action aspect-video', {
         'bg-opacity-5': !isActive,
       })}
-      onClick={onClick(item.url)}
+      onClick={onClick(item.thumbnails.large)}
     >
       {isVisible && (
         <>
-          <img src={item.thumbnails.small} className={cx('h-full object-cover w-full')} />
+          <img src={item.thumbnails.small} className={cx('h-full object-cover w-full')} alt="thumb" />
           <div
             className={cx('absolute left-0 top-0 right-0 bottom-0', {
               hidden: isActive,

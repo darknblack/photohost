@@ -38,17 +38,20 @@ function Preview(props: Props) {
     onClose();
   });
 
-  const activeIndex = useMemo(() => images.findIndex(item => item.url === activeImageUrl), [activeImageUrl, images]);
+  const activeIndex = useMemo(
+    () => images.findIndex(item => item.thumbnails.large === activeImageUrl),
+    [activeImageUrl, images]
+  );
 
   const goLeft = useEvent(() => {
     if (activeIndex > 0) {
-      selectPreviewImageUrl(images[activeIndex - 1].url);
+      selectPreviewImageUrl(images[activeIndex - 1].thumbnails.large);
     }
   });
 
   const goRight = useEvent(() => {
     if (activeIndex < images.length - 1) {
-      selectPreviewImageUrl(images[activeIndex + 1].url);
+      selectPreviewImageUrl(images[activeIndex + 1].thumbnails.large);
     }
   });
 
@@ -100,12 +103,16 @@ function Preview(props: Props) {
       )}
     >
       <div className="h-full flex flex-col gap-2">
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
         <div
           className="w-full flex-1 h-0 flex justify-center items-center cursor-pointer !pointer-events-auto pt-2"
           onClick={onWhiteSpaceClick}
+          // biome-ignore lint/a11y/useSemanticElements: <explanation>
+          role="button"
+          tabIndex={0}
         >
           <div className="h-full relative pointer-events-none flex items-center justify-center px-2">
-            <img src={activeImageUrl} className="max-h-full cursor-default button-w-action" />
+            <img src={activeImageUrl} className="max-h-full cursor-default button-w-action" alt="thumb" />
           </div>
 
           <div className="absolute flex top-0 left-0 pt-2 px-2 justify-end w-full">
@@ -131,8 +138,8 @@ function Preview(props: Props) {
 
         <div ref={thumbsRootRef} className="h-[6%] flex gap-1 pb-2">
           {images.map(item => {
-            const isActive = activeImageUrl === item.url;
-            return <ThumbBottom key={item.url} item={item} isActive={isActive} onClick={onClickThumb} />;
+            const isActive = activeImageUrl === item.thumbnails.large;
+            return <ThumbBottom key={item.thumbnails.large} item={item} isActive={isActive} onClick={onClickThumb} />;
           })}
           {!isPendingNewImages && <InfiniteScrollTriggerPoint cb={onInfiniteScrollTriggerPoint} />}
         </div>

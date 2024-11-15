@@ -16,9 +16,7 @@ import {
   renameFolder,
 } from '@/app/server/actions';
 import { useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import useEvent from '../hooks/useEvent';
-
+import type { useRouter } from 'next/navigation';
 interface Props {
   isRenameModalOpen: boolean;
   setIsRenameModalOpen: (isRenameModalOpen: boolean) => void;
@@ -33,12 +31,10 @@ interface Props {
   activeFolder: string;
   router: ReturnType<typeof useRouter>;
   isTrash: boolean;
-  isAlbum: boolean;
   isDeleteFolder: boolean;
   isStarredOnly: boolean;
   selectedImagesId: string[];
   folders: string[];
-  images: Image[];
 }
 
 export default function Modals(props: Props) {
@@ -56,12 +52,10 @@ export default function Modals(props: Props) {
     activeFolder,
     router,
     isTrash,
-    isAlbum,
     isDeleteFolder,
     isStarredOnly,
     folders,
     selectedImagesId,
-    images,
   } = props;
 
   const fSelectedImagesId: [string, string][] = selectedImagesId
@@ -76,7 +70,7 @@ export default function Modals(props: Props) {
       return [folder, filename];
     });
 
-  const rElDestinationFolder = useRef<any>();
+  const rElDestinationFolder = useRef<HTMLSelectElement>(null);
 
   return (
     <>

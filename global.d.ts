@@ -22,12 +22,17 @@ interface ThumbnailSizes {
     width: number;
     height: number;
   };
+  large: {
+    width: number;
+    height: number;
+  };
 }
 
 interface ThumbnailInfo {
   hash: string;
   urls: {
     small: string;
+    large: string;
   };
 }
 
@@ -51,6 +56,7 @@ interface PhotoRecord {
   url: string;
   thumbnails: {
     small: string;
+    large: string;
   };
 }
 

@@ -321,11 +321,9 @@ function Header(props: Props) {
         activeFolder={activeFolder}
         selectedImagesId={selectedImagesId}
         isTrash={isTrash}
-        isAlbum={isAlbum}
         isDeleteFolder={isDeleteFolder}
         isStarredOnly={isStarredOnly}
         folders={folders}
-        images={images}
       />
     </>
   );
